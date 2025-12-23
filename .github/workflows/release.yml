@@ -1,93 +1,37 @@
-name: Build and Release
+name: Release
 
 on:
   push:
-    branches: [ main, master ]
-    tags:
-      - 'v*'
-  pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:
+    branches:
+      - main
+      - master
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run TypeScript check
-      run: npm run build
-      
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: plugin-build
-        path: |
-          main.js
-          manifest.json
-          styles.css
-        retention-days: 30
-
   release:
-    needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Build plugin
-      run: npm run build
-      
-    - name: Get version from tag
+      uses: actions/checkout@v3
+    
+    - name: Get version from manifest
       id: get_version
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-      
+      run: |
+        VERSION=$(node -p "require('./manifest.json').version")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+    
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ steps.get_version.outputs.VERSION }}
+        tag_name: v${{ steps.get_version.outputs.version }}
+        release_name: v${{ steps.get_version.outputs.version }}
         draft: false
         prerelease: false
-        body: |
-          ## Changes in this release
-          
-          See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
-          
-          ### Installation
-          
-          1. Download the `main.js`, `manifest.json`, and `styles.css` files from the release assets
-          2. Copy these files to your Obsidian vault's `.obsidian/plugins/bookmark-creator/` directory
-          3. Restart Obsidian and enable the plugin in Settings > Community plugins
-          
-    - name: Upload Release Assets
+    
+    - name: Upload main.js
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -96,8 +40,8 @@ jobs:
         asset_path: ./main.js
         asset_name: main.js
         asset_content_type: application/javascript
-        
-    - name: Upload Manifest Asset
+    
+    - name: Upload manifest.json
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -106,31 +50,3 @@ jobs:
         asset_path: ./manifest.json
         asset_name: manifest.json
         asset_content_type: application/json
-
-  version-check:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Check version bump
-      run: |
-        # Check if version was updated in manifest.json
-        if git diff HEAD~1 HEAD --name-only | grep -q "manifest.json"; then
-          echo "✓ manifest.json was modified"
-          # Extract version from manifest.json
-          CURRENT_VERSION=$(jq -r '.version' manifest.json)
-          echo "Current version: $CURRENT_VERSION"
-          
-          # Check if this is a valid semantic version
-          if [[ $CURRENT_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "✓ Version format is valid"
-          else
-            echo "✗ Invalid version format"
-            exit 1
-          fi
-        else
-          echo "⚠ manifest.json was not modified - consider if version bump is needed"
-        fi
