@@ -1,0 +1,11 @@
+{
+  "id": "bookmark-creator",
+  "name": "Bookmark Creator",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "Create bookmark notes with screenshots from URLs",
+  "author": "dms",
+  "authorUrl": "https://github.com/dmscode",
+  "fundingUrl": "https://afdian.com/a/daomishu",
+  "isDesktopOnly": false
+}
