@@ -1,0 +1,146 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run TypeScript compilation check
+      run: npm run build
+      
+    - name: Check for build artifacts
+      run: |
+        if [ -f "main.js" ]; then
+          echo "✓ main.js was generated successfully"
+          ls -la main.js
+        else
+          echo "✗ main.js was not generated"
+          exit 1
+        fi
+        
+    - name: Validate manifest.json
+      run: |
+        if [ -f "manifest.json" ]; then
+          echo "✓ manifest.json exists"
+          # Validate JSON syntax
+          if jq empty manifest.json; then
+            echo "✓ manifest.json is valid JSON"
+          else
+            echo "✗ manifest.json is invalid JSON"
+            exit 1
+          fi
+          
+          # Check required fields
+          if jq -e '.id' manifest.json > /dev/null; then
+            echo "✓ Plugin ID is present"
+          else
+            echo "✗ Plugin ID is missing"
+            exit 1
+          fi
+          
+          if jq -e '.version' manifest.json > /dev/null; then
+            echo "✓ Version is present"
+          else
+            echo "✗ Version is missing"
+            exit 1
+          fi
+          
+          if jq -e '.minAppVersion' manifest.json > /dev/null; then
+            echo "✓ Min App Version is present"
+          else
+            echo "✗ Min App Version is missing"
+            exit 1
+          fi
+        else
+          echo "✗ manifest.json does not exist"
+          exit 1
+        fi
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run ESLint (if configured)
+      run: |
+        if [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ] || [ -f ".eslintrc" ]; then
+          echo "Running ESLint..."
+          npx eslint . --ext .ts,.js
+        else
+          echo "No ESLint configuration found, skipping lint check"
+        fi
+      continue-on-error: true
+      
+    - name: Check TypeScript types
+      run: |
+        if [ -f "tsconfig.json" ]; then
+          echo "Running TypeScript type check..."
+          npx tsc --noEmit --skipLibCheck
+        else
+          echo "No TypeScript configuration found"
+        fi
+      continue-on-error: true
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run npm audit
+      run: npm audit --audit-level=moderate
+      continue-on-error: true
+      
+    - name: Check for known vulnerabilities
+      run: |
+        echo "Checking for security vulnerabilities..."
+        npm audit --json > audit-results.json || true
+        if [ -s audit-results.json ]; then
+          echo "Security audit results:"
+          cat audit-results.json | jq '.metadata.vulnerabilities // {"info": 0, "low": 0, "moderate": 0, "high": 0, "critical": 0}'
+        fi
+      continue-on-error: true
