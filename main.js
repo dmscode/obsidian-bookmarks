@@ -56,9 +56,21 @@ var BookmarkCreatorPlugin = class extends import_obsidian.Plugin {
    * 确保文件夹存在
    */
   async ensureFolderExists(folderPath) {
-    const folder = this.app.vault.getAbstractFileByPath(folderPath);
-    if (!folder) {
-      await this.app.vault.createFolder(folderPath);
+    try {
+      const folder = this.app.vault.getAbstractFileByPath(folderPath);
+      if (!folder) {
+        await this.app.vault.createFolder(folderPath);
+        return;
+      }
+      if (!(folder instanceof import_obsidian.TFolder)) {
+        throw new Error(`\u8DEF\u5F84 "${folderPath}" \u5DF2\u5B58\u5728\u4F46\u4E0D\u662F\u6587\u4EF6\u5939`);
+      }
+    } catch (error) {
+      if (error.message && error.message.includes("Folder already exists")) {
+        console.log(`\u6587\u4EF6\u5939 "${folderPath}" \u5DF2\u5B58\u5728\uFF0C\u8DF3\u8FC7\u521B\u5EFA`);
+        return;
+      }
+      throw error;
     }
   }
   /**
@@ -81,6 +93,7 @@ var BookmarkCreatorPlugin = class extends import_obsidian.Plugin {
         }
       });
       if (response.status === 200) {
+        console.log("Screenshot downloaded successfully");
         await this.app.vault.createBinary(filePath, response.arrayBuffer);
       } else {
         throw new Error(`\u622A\u56FE\u4E0B\u8F7D\u5931\u8D25\uFF0C\u72B6\u6001\u7801: ${response.status}`);
@@ -89,6 +102,26 @@ var BookmarkCreatorPlugin = class extends import_obsidian.Plugin {
       console.error("\u4E0B\u8F7D\u622A\u56FE\u5931\u8D25:", error);
       throw new Error(`\u65E0\u6CD5\u4E0B\u8F7D\u7F51\u7AD9\u622A\u56FE: ${error.message}`);
     }
+  }
+  /**
+   * 确保文件可以被创建（处理同名文件存在的情况）
+   */
+  async ensureFileCanBeCreated(filePath) {
+    const existingFile = this.app.vault.getAbstractFileByPath(filePath);
+    if (!existingFile) {
+      return filePath;
+    }
+    const now = new Date();
+    const timestamp = now.getTime().toString().slice(-6);
+    const pathParts = filePath.split("/");
+    const fileName = pathParts[pathParts.length - 1];
+    const folderPath = pathParts.slice(0, -1).join("/");
+    const nameParts = fileName.split(".");
+    const extension = nameParts.length > 1 ? nameParts.pop() : "";
+    const baseName = nameParts.join(".");
+    const newFileName = `${baseName}_${timestamp}.${extension}`;
+    const newFilePath = folderPath ? `${folderPath}/${newFileName}` : newFileName;
+    return newFilePath;
   }
   /**
    * 从YAML数据创建书签笔记
@@ -116,6 +149,7 @@ var BookmarkCreatorPlugin = class extends import_obsidian.Plugin {
       const safeTitle = this.sanitizeFileName(title);
       const fileName = `${safeTitle}.md`;
       const filePath = `${this.settings.bookmarkFolder}/${fileName}`;
+      const finalFilePath = await this.ensureFileCanBeCreated(filePath);
       const screenshotUrl = `https://image.thum.io/get/wait/12/viewportWidth/1600/width/1440/crop/900/png/noanimate/${url}`;
       const screenshotFileName = `${safeTitle}.png`;
       const screenshotPath = `${this.settings.attachmentFolder}/${screenshotFileName}`;
@@ -128,7 +162,7 @@ var BookmarkCreatorPlugin = class extends import_obsidian.Plugin {
         tags,
         screenshotFileName
       });
-      const file = await this.app.vault.create(filePath, noteContent);
+      const file = await this.app.vault.create(finalFilePath, noteContent);
       await this.app.workspace.getLeaf().openFile(file);
       new import_obsidian.Notice(`\u4E66\u7B7E\u7B14\u8BB0 "${title}" \u521B\u5EFA\u6210\u529F\uFF01`);
     } catch (error) {
@@ -141,7 +175,7 @@ var BookmarkCreatorPlugin = class extends import_obsidian.Plugin {
    */
   buildNoteContentFromYaml(data) {
     const tagsString = data.tags.length > 0 ? data.tags.join(", ") : "";
-    const screenshotLink = `screenshot:: ![\u7F51\u7AD9\u622A\u56FE](${this.settings.attachmentFolder}/${data.screenshotFileName})`;
+    const screenshotLink = `screenshot:: ![\u7F51\u7AD9\u622A\u56FE](${this.settings.attachmentFolder}/${encodeURIComponent(data.screenshotFileName)})`;
     return `---
 created: ${data.created}
 title: "${data.title}"
@@ -168,7 +202,17 @@ var BookmarkModal = class extends import_obsidian.Modal {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.createEl("h2", { text: "\u521B\u5EFA\u4E66\u7B7E\u7B14\u8BB0" });
-    new import_obsidian.Setting(contentEl).setName("\u4E66\u7B7E\u4FE1\u606F").setDesc("\u8BF7\u6309YAML\u683C\u5F0F\u8F93\u5165\u4E66\u7B7E\u4FE1\u606F").addTextArea((text) => {
+    contentEl.createEl("style", { text: `
+			.bookmark-yaml-input-setting {
+				flex-wrap: wrap;
+			}
+			.bookmark-yaml-input-setting .setting-item-info,
+			.bookmark-yaml-input-setting .setting-item-control,
+			.bookmark-yaml-input-setting .setting-item-control textarea {
+				width: 100%;
+			}
+		`, type: "text/css" });
+    new import_obsidian.Setting(contentEl).setClass("bookmark-yaml-input-setting").setName("\u4E66\u7B7E\u4FE1\u606F").setDesc("\u8BF7\u6309YAML\u683C\u5F0F\u8F93\u5165\u4E66\u7B7E\u4FE1\u606F").addTextArea((text) => {
       this.yamlTextarea = text.inputEl;
       text.setPlaceholder(`---
 created: 

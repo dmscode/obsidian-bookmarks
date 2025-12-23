@@ -46,9 +46,29 @@ export default class BookmarkCreatorPlugin extends Plugin {
 	 * 确保文件夹存在
 	 */
 	private async ensureFolderExists(folderPath: string) {
-		const folder = this.app.vault.getAbstractFileByPath(folderPath);
-		if (!folder) {
-			await this.app.vault.createFolder(folderPath);
+		try {
+			const folder = this.app.vault.getAbstractFileByPath(folderPath);
+			
+			// 如果路径不存在，创建文件夹
+			if (!folder) {
+				await this.app.vault.createFolder(folderPath);
+				return;
+			}
+			
+			// 如果路径存在但不是文件夹，抛出错误
+			if (!(folder instanceof TFolder)) {
+				throw new Error(`路径 "${folderPath}" 已存在但不是文件夹`);
+			}
+			
+			// 文件夹已存在，无需操作
+		} catch (error) {
+			// 如果错误是 "Folder already exists"，忽略它
+			if (error.message && error.message.includes('Folder already exists')) {
+				console.log(`文件夹 "${folderPath}" 已存在，跳过创建`);
+				return;
+			}
+			// 其他错误重新抛出
+			throw error;
 		}
 	}
 
@@ -74,6 +94,7 @@ export default class BookmarkCreatorPlugin extends Plugin {
 			});
 
 			if (response.status === 200) {
+				console.log('Screenshot downloaded successfully');
 				await this.app.vault.createBinary(filePath, response.arrayBuffer);
 			} else {
 				throw new Error(`截图下载失败，状态码: ${response.status}`);
@@ -82,6 +103,33 @@ export default class BookmarkCreatorPlugin extends Plugin {
 			console.error('下载截图失败:', error);
 			throw new Error(`无法下载网站截图: ${error.message}`);
 		}
+	}
+
+	/**
+	 * 确保文件可以被创建（处理同名文件存在的情况）
+	 */
+	private async ensureFileCanBeCreated(filePath: string): Promise<string> {
+		const existingFile = this.app.vault.getAbstractFileByPath(filePath);
+		
+		if (!existingFile) {
+			// 文件不存在，可以直接创建
+			return filePath;
+		}
+		
+		// 如果文件已存在，生成带时间戳的新文件名
+		const now = new Date();
+		const timestamp = now.getTime().toString().slice(-6); // 取时间戳后6位
+		const pathParts = filePath.split('/');
+		const fileName = pathParts[pathParts.length - 1];
+		const folderPath = pathParts.slice(0, -1).join('/');
+		const nameParts = fileName.split('.');
+		const extension = nameParts.length > 1 ? nameParts.pop() : '';
+		const baseName = nameParts.join('.');
+		
+		const newFileName = `${baseName}_${timestamp}.${extension}`;
+		const newFilePath = folderPath ? `${folderPath}/${newFileName}` : newFileName;
+		
+		return newFilePath;
 	}
 
 	/**
@@ -122,6 +170,9 @@ export default class BookmarkCreatorPlugin extends Plugin {
 			const fileName = `${safeTitle}.md`;
 			const filePath = `${this.settings.bookmarkFolder}/${fileName}`;
 
+			// 确保文件可以被创建（处理同名文件情况）
+			const finalFilePath = await this.ensureFileCanBeCreated(filePath);
+
 			// 生成截图
 			const screenshotUrl = `https://image.thum.io/get/wait/12/viewportWidth/1600/width/1440/crop/900/png/noanimate/${url}`;
 			const screenshotFileName = `${safeTitle}.png`;
@@ -141,7 +192,7 @@ export default class BookmarkCreatorPlugin extends Plugin {
 			});
 
 			// 创建笔记文件
-			const file = await this.app.vault.create(filePath, noteContent);
+			const file = await this.app.vault.create(finalFilePath, noteContent);
 
 			// 自动打开笔记
 			await this.app.workspace.getLeaf().openFile(file);
@@ -165,7 +216,7 @@ export default class BookmarkCreatorPlugin extends Plugin {
 		screenshotFileName: string;
 	}): string {
 		const tagsString = data.tags.length > 0 ? data.tags.join(', ') : '';
-		const screenshotLink = `screenshot:: ![网站截图](${this.settings.attachmentFolder}/${data.screenshotFileName})`;
+		const screenshotLink = `screenshot:: ![网站截图](${this.settings.attachmentFolder}/${encodeURIComponent( data.screenshotFileName )})`;
 
 		return `---
 created: ${data.created}
@@ -204,8 +255,20 @@ class BookmarkModal extends Modal {
 
 		contentEl.createEl('h2', { text: '创建书签笔记' });
 
+		contentEl.createEl('style', { text: `
+			.bookmark-yaml-input-setting {
+				flex-wrap: wrap;
+			}
+			.bookmark-yaml-input-setting .setting-item-info,
+			.bookmark-yaml-input-setting .setting-item-control,
+			.bookmark-yaml-input-setting .setting-item-control textarea {
+				width: 100%;
+			}
+		`, type: 'text/css' });
+
 		// YAML格式输入
 		new Setting(contentEl)
+			.setClass('bookmark-yaml-input-setting')
 			.setName('书签信息')
 			.setDesc('请按YAML格式输入书签信息')
 			.addTextArea(text => {

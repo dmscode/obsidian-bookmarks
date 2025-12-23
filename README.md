@@ -1,8 +1,5 @@
 # Obsidian 书签创建器插件
 
-![CI](https://github.com/dmscode/obsidian-bookmarks/workflows/CI/badge.svg)
-![Build and Release](https://github.com/dmscode/obsidian-bookmarks/workflows/Build%20and%20Release/badge.svg)
-
 一个用于创建书签笔记的 Obsidian 插件，可以自动生成网站截图并保存为附件。
 
 ## 功能特点
