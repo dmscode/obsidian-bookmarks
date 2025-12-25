@@ -1,0 +1,48 @@
+.bases-view[data-view-type="cards"][data-view-name^="书签"] {
+    background-color: #F1F5F9;
+    .bases-cards-label { display: none; }
+    .bases-cards-item {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        padding: 12px;
+        transition: box-shadow 0.2s ease;
+        &:hover {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+    }
+    .bases-cards-property {
+        &[data-property="note.description"] {
+            cursor: pointer;
+            &:hover {
+                overflow: visible;
+                & .bases-cards-line {
+                    position: absolute;
+                    box-sizing: content-box;
+                    height: 6em;
+                    z-index: 1;
+                    top: 0;
+                    left: 0;
+                    background-color: #E2E8F0;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    word-break: break-all;
+                    white-space: break-spaces;
+                    line-height: 1.2em;
+                }
+            }
+        }
+        a {
+            color: rgb(107, 114, 128);
+            text-decoration: none;
+            &.tag {
+                background-color: rgb(241, 245, 249);
+                color: rgb(55, 65, 81);
+                &:hover {
+                    background-color: rgb(2, 8, 23);
+                    color: rgb(241, 245, 249);
+                }
+            }
+        }
+    }
+}

@@ -19,6 +19,15 @@
 2. 将 `manifest.json`、`main.js` 文件复制到你的 Obsidian  vault 的 `.obsidian/plugins/bookmark-creator/` 文件夹中
 3. 在 Obsidian 的设置中启用插件
 
+### 使用 BRAT 安装
+
+1. 安装 [BRAT 插件](https://github.com/TfTHacker/obsidian42-brat)
+2. 打开命令面板（Ctrl/Cmd + P）
+3. 输入 "BRAT: Add a beta plugin for testing"
+4. 输入插件仓库地址：`https://github.com/dmscode/obsidian-bookmarks`
+5. 等待 BRAT 下载并安装插件
+6. 在 Obsidian 的设置中启用插件
+
 ### 开发模式安装
 
 1. 克隆或下载此仓库
@@ -195,6 +204,10 @@ screenshot:: ![网站截图](Attachments/网站标题.png)
 ```
 
 ## 技术细节
+
+### 自带样式
+
+对 Obsidian 数据库（Base）视图做了轻微优化，当视图名称为“书签”或者以“书签”开头时，会应用此样式。
 
 ### 截图生成
 
