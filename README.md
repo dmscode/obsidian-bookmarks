@@ -86,3 +86,5 @@ MIT License
 ---
 
 **⭐ 喜欢这个项目？给个 Star 支持一下！**
+
+如果能再请我喝杯咖啡，那将会让我快乐好一阵子——[到爱发电支持我。](https://afdian.com/a/daomishu)

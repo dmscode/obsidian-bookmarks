@@ -138,6 +138,9 @@ export class BookmarkCreatorSettingTab extends PluginSettingTab {
 		
 		// 使用说明
 		this.createUsageInstructions(containerEl);
+		
+		// 捐助支持
+		this.createDonationSection(containerEl);
 	}
 
 	/**
@@ -363,5 +366,63 @@ tags:
 		exampleCode.style.fontFamily = 'monospace';
 		exampleCode.style.fontSize = '14px';
 		exampleCode.style.overflowX = 'auto';
+	}
+
+	/**
+	 * 创建捐助支持部分
+	 * @private
+	 * @param {HTMLElement} containerEl - 容器元素
+	 * @returns {void}
+	 */
+	private createDonationSection(containerEl: HTMLElement): void {
+		// 分隔线
+		containerEl.createEl('hr').style.margin = '30px 0';
+		
+		// 捐助标题
+		containerEl.createEl('h3', { text: '支持开发者' });
+		
+		// 捐助说明
+		containerEl.createEl('p', { 
+			text: '如果这个插件对你有帮助，希望能请我喝杯咖啡，这将会使我开心好一阵子~',
+			cls: 'donation-description'
+		});
+		
+		// 爱发电链接按钮
+		const donationContainer = containerEl.createDiv({ cls: 'donation-container' });
+		donationContainer.style.display = 'flex';
+		donationContainer.style.alignItems = 'center';
+		donationContainer.style.gap = '10px';
+		donationContainer.style.marginTop = '15px';
+		
+		const donationButton = donationContainer.createEl('a', {
+			text: '☕ 爱发电支持',
+			href: 'https://afdian.com/a/daomishu',
+			title: '点击跳转到爱发电页面支持开发者'
+		});
+		
+		// 设置按钮样式
+		donationButton.style.display = 'inline-block';
+		donationButton.style.padding = '8px 16px';
+		donationButton.style.backgroundColor = '#8B62DC';
+		donationButton.style.color = 'white';
+		donationButton.style.textDecoration = 'none';
+		donationButton.style.borderRadius = '6px';
+		donationButton.style.fontWeight = 'bold';
+		donationButton.style.transition = 'background-color 0.3s ease';
+		
+		// 悬停效果
+		donationButton.addEventListener('mouseenter', () => {
+			donationButton.style.backgroundColor = '#6d41c3ff';
+		});
+		
+		donationButton.addEventListener('mouseleave', () => {
+			donationButton.style.backgroundColor = '#8B62DC';
+		});
+		
+		// 感谢文字
+		donationContainer.createEl('span', {
+			text: '每一份支持都是我持续更新的动力！',
+			cls: 'donation-thanks'
+		}).style.color = '#666';
 	}
 }

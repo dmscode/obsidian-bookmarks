@@ -140,6 +140,7 @@ var BookmarkCreatorSettingTab = class extends import_obsidian.PluginSettingTab {
     this.createAiApiKeySetting(containerEl);
     this.createAiPromptTemplateSetting(containerEl);
     this.createUsageInstructions(containerEl);
+    this.createDonationSection(containerEl);
   }
   /**
    * 创建书签文件夹设置
@@ -301,6 +302,48 @@ tags:
     exampleCode.style.fontFamily = "monospace";
     exampleCode.style.fontSize = "14px";
     exampleCode.style.overflowX = "auto";
+  }
+  /**
+   * 创建捐助支持部分
+   * @private
+   * @param {HTMLElement} containerEl - 容器元素
+   * @returns {void}
+   */
+  createDonationSection(containerEl) {
+    containerEl.createEl("hr").style.margin = "30px 0";
+    containerEl.createEl("h3", { text: "\u652F\u6301\u5F00\u53D1\u8005" });
+    containerEl.createEl("p", {
+      text: "\u5982\u679C\u8FD9\u4E2A\u63D2\u4EF6\u5BF9\u4F60\u6709\u5E2E\u52A9\uFF0C\u5E0C\u671B\u80FD\u8BF7\u6211\u559D\u676F\u5496\u5561\uFF0C\u8FD9\u5C06\u4F1A\u4F7F\u6211\u5F00\u5FC3\u597D\u4E00\u9635\u5B50~",
+      cls: "donation-description"
+    });
+    const donationContainer = containerEl.createDiv({ cls: "donation-container" });
+    donationContainer.style.display = "flex";
+    donationContainer.style.alignItems = "center";
+    donationContainer.style.gap = "10px";
+    donationContainer.style.marginTop = "15px";
+    const donationButton = donationContainer.createEl("a", {
+      text: "\u2615 \u7231\u53D1\u7535\u652F\u6301",
+      href: "https://afdian.com/a/daomishu",
+      title: "\u70B9\u51FB\u8DF3\u8F6C\u5230\u7231\u53D1\u7535\u9875\u9762\u652F\u6301\u5F00\u53D1\u8005"
+    });
+    donationButton.style.display = "inline-block";
+    donationButton.style.padding = "8px 16px";
+    donationButton.style.backgroundColor = "#8B62DC";
+    donationButton.style.color = "white";
+    donationButton.style.textDecoration = "none";
+    donationButton.style.borderRadius = "6px";
+    donationButton.style.fontWeight = "bold";
+    donationButton.style.transition = "background-color 0.3s ease";
+    donationButton.addEventListener("mouseenter", () => {
+      donationButton.style.backgroundColor = "#6d41c3ff";
+    });
+    donationButton.addEventListener("mouseleave", () => {
+      donationButton.style.backgroundColor = "#8B62DC";
+    });
+    donationContainer.createEl("span", {
+      text: "\u6BCF\u4E00\u4EFD\u652F\u6301\u90FD\u662F\u6211\u6301\u7EED\u66F4\u65B0\u7684\u52A8\u529B\uFF01",
+      cls: "donation-thanks"
+    }).style.color = "#666";
   }
 };
 
