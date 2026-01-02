@@ -2,6 +2,8 @@ import { App, Plugin, Notice } from 'obsidian';
 import { BookmarkCreatorSettings } from './types';
 import { DEFAULT_SETTINGS, BookmarkCreatorSettingTab } from './settings';
 import { BookmarkModal } from './modal';
+import { waitlist } from './waitlist';
+import { BookmarkWorkflow } from './workflow';
 
 /**
  * 书签创建器插件主类
@@ -11,62 +13,83 @@ import { BookmarkModal } from './modal';
  * @extends {Plugin}
  */
 export default class BookmarkCreatorPlugin extends Plugin {
-	/** 插件设置 */
-	settings: BookmarkCreatorSettings = DEFAULT_SETTINGS;
+    /** 插件设置 */
+    settings: BookmarkCreatorSettings = DEFAULT_SETTINGS;
 
-	/**
-	 * 插件加载时的初始化
-	 * 设置命令、设置页面等
-	 * 
-	 * @async
-	 * @returns {Promise<void>}
-	 */
-	async onload(): Promise<void> {
-		await this.loadSettings();
+    /**
+     * 插件加载时的初始化
+     * 设置命令、设置页面等
+     * 
+     * @async
+     * @returns {Promise<void>}
+     */
+    async onload(): Promise<void> {
+        await this.loadSettings();
 
-		// 添加创建书签命令
-		this.addCommand({
-			id: 'create-bookmark',
-			name: '创建书签笔记',
-			callback: () => {
-				new BookmarkModal(this.app, this).open();
-			}
-		});
+        // 添加创建书签命令
+        this.addCommand({
+            id: 'create-bookmark',
+            name: '创建书签笔记',
+            callback: () => {
+                new BookmarkModal(this.app, this).inputMode().open();
+            }
+        });
 
-		// 添加设置页面
-		this.addSettingTab(new BookmarkCreatorSettingTab(this.app, this));
+        this.registerURI();
+        // 添加设置页面
+        this.addSettingTab(new BookmarkCreatorSettingTab(this.app, this));
 
-		console.log('书签创建器插件已加载');
-	}
+        console.log('书签创建器插件已加载');
+    }
 
-	/**
-	 * 插件卸载时的清理
-	 * 
-	 * @returns {void}
-	 */
-	onunload(): void {
-		console.log('书签创建器插件已卸载');
-	}
+    /**
+     * 插件卸载时的清理
+     * 
+     * @returns {void}
+     */
+    onunload(): void {
+        console.log('书签创建器插件已卸载');
+    }
 
-	/**
-	 * 加载插件设置
-	 * 从存储中读取设置，如果不存在则使用默认设置
-	 * 
-	 * @async
-	 * @returns {Promise<void>}
-	 */
-	async loadSettings(): Promise<void> {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-	}
+    /**
+     * 加载插件设置
+     * 从存储中读取设置，如果不存在则使用默认设置
+     * 
+     * @async
+     * @returns {Promise<void>}
+     */
+    async loadSettings(): Promise<void> {
+        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    }
 
-	/**
-	 * 保存插件设置
-	 * 将当前设置保存到存储中
-	 * 
-	 * @async
-	 * @returns {Promise<void>}
-	 */
-	async saveSettings(): Promise<void> {
-		await this.saveData(this.settings);
-	}
+    /**
+     * 保存插件设置
+     * 将当前设置保存到存储中
+     * 
+     * @async
+     * @returns {Promise<void>}
+     */
+    async saveSettings(): Promise<void> {
+        await this.saveData(this.settings);
+    }
+
+    /**
+     * 注册URI处理
+     * 允许通过URI创建书签笔记
+     * 
+     * @returns {void}
+     */
+    registerURI(): void {
+        this.registerObsidianProtocolHandler("bookmark", async (param) => {
+            if(param && param.add) {
+                try {
+                    new URL(param.add);
+                    waitlist.add(param.add);
+                    new BookmarkWorkflow(this.app, this.settings).startURLWorkflow();
+                } catch (error) {
+                    new Notice("创建书签失败，URL格式错误");
+                }
+            }
+        });
+    }
 }

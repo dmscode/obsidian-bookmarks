@@ -48,10 +48,11 @@ var DEFAULT_SETTINGS = {
 - \u4FDD\u6301\u539F\u59CB\u54C1\u724C\u540D\u79F0\uFF0C\u4E0D\u8981\u7FFB\u8BD1\u4E13\u6709\u540D\u8BCD
 
 ### \u63CF\u8FF0\u89C4\u8303  
-- \u75281-2\u53E5\u8BDD\u8BF4\u660E\u7F51\u7AD9\u7684\u6838\u5FC3\u529F\u80FD\u548C\u4EF7\u503C
+- \u8BF4\u660E\u7F51\u7AD9\u7684\u6838\u5FC3\u529F\u80FD\u548C\u4EF7\u503C
 - \u7A81\u51FA\u7F51\u7AD9\u7684\u4E3B\u8981\u7528\u9014\u548C\u7279\u8272
 - \u4F7F\u7528\u7B80\u4F53\u4E2D\u6587\uFF0C\u907F\u514D\u5197\u957F\u4ECB\u7ECD
 - \u63CF\u8FF0\u8981\u5177\u4F53\u6709\u7528\uFF0C\u907F\u514D\u7A7A\u6CDB\u7684\u5F62\u5BB9\u8BCD
+- \u4E0D\u8D85\u8FC7 300 \u5B57
 
 ### \u6807\u7B7E\u89C4\u8303
 1. **\u4E3B\u8981\u5206\u7C7B\u6807\u7B7E**\uFF081-2\u4E2A\uFF09\uFF1A
@@ -72,7 +73,7 @@ var DEFAULT_SETTINGS = {
 
 ## \u8F93\u51FA\u683C\u5F0F\uFF1A
 
-\u4E25\u683C\u6309\u7167\u4EE5\u4E0BYAML\u683C\u5F0F\u8F93\u51FA\uFF0C\u4F7F\u7528\u591A\u884C\u6807\u7B7E\u683C\u5F0F\uFF1A
+\u4E25\u683C\u6309\u7167\u4EE5\u4E0BYAML\u683C\u5F0F\u8F93\u51FA\uFF0C\u6807\u7B7E\u4F7F\u7528\u5217\u8868\u683C\u5F0F\uFF1A
 
 \`\`\`yaml
 ---
@@ -104,7 +105,7 @@ tags:
 ## \u6CE8\u610F\u4E8B\u9879\uFF1A
 
 - \u4FDD\u6301YAML\u8BED\u6CD5\u6B63\u786E\uFF0C\u4F7F\u7528\u591A\u884C\u6807\u7B7E\u683C\u5F0F
-- \u6807\u7B7E\u4F7F\u7528\u7B80\u4F53\u4E2D\u6587\uFF0C\u907F\u514D\u82F1\u6587\u6807\u7B7E
+- \u6807\u7B7E\u4F18\u5148\u4F7F\u7528\u7B80\u4F53\u4E2D\u6587\uFF0C\u5982\u975E\u5FC5\u8981\u7684\u4E13\u4E1A\u540D\u8BCD\u907F\u514D\u82F1\u6587\u6807\u7B7E
 - \u4E0D\u8981\u6DFB\u52A0\u5F15\u53F7\uFF0C\u9664\u975E\u5FC5\u8981
 - \u786E\u4FDD\u751F\u6210\u7684\u4FE1\u606F\u51C6\u786E\u53CD\u6620\u7F51\u7AD9\u5B9E\u9645\u5185\u5BB9`
 };
@@ -306,733 +307,363 @@ tags:
 // src/modal.ts
 var import_obsidian5 = require("obsidian");
 
-// src/addByYAML.ts
-var import_obsidian3 = require("obsidian");
+// src/steps.ts
+var allSteps = [
+  {
+    "title": "\u83B7\u53D6\u7F51\u9875\u5185\u5BB9",
+    "desc": "\u4F7F\u7528 Jina \u4ECE\u76EE\u6807\u7F51\u5740\u83B7\u53D6\u5185\u5BB9",
+    "name": "get-web-content",
+    "estimatedTime": 30
+  },
+  {
+    "title": "\u83B7\u53D6\u7F51\u7AD9\u8BC4\u4EF7",
+    "desc": "\u4F7F\u7528 Jina \u641C\u7D22\u76EE\u6807\u7F51\u5740\u83B7\u53D6\u76F8\u5173\u8BC4\u4EF7",
+    "name": "get-web-rating",
+    "estimatedTime": 60
+  },
+  {
+    "title": "\u751F\u6210\u4E66\u7B7E\u4FE1\u606F",
+    "desc": "\u4F7F\u7528 AI \u6839\u636E\u83B7\u53D6\u7684\u5185\u5BB9\u751F\u6210\u4E66\u7B7E\u4FE1\u606F",
+    "name": "generate-bookmark-info",
+    "estimatedTime": 60
+  },
+  {
+    "title": "\u4E0B\u8F7D\u7F51\u7AD9\u622A\u56FE",
+    "desc": "\u4F7F\u7528 Thum.io \u4E0B\u8F7D\u76EE\u6807\u7F51\u5740\u7684\u622A\u56FE",
+    "name": "download-web-screenshot",
+    "estimatedTime": 60
+  },
+  {
+    "title": "\u521B\u5EFA\u4E66\u7B7E\u7B14\u8BB0",
+    "desc": "\u6839\u636E\u751F\u6210\u7684\u4E66\u7B7E\u4FE1\u606F\u521B\u5EFA Obsidian \u7B14\u8BB0",
+    "name": "create-bookmark-note",
+    "estimatedTime": 10
+  }
+];
+var steps = {
+  "full": allSteps,
+  "simple": allSteps.slice(3)
+};
 
-// src/progressModal.ts
-var import_obsidian2 = require("obsidian");
-var ProgressModal = class extends import_obsidian2.Modal {
-  /**
-   * 构造函数
-   * @param {App} app - Obsidian应用实例
-   * @param {string} [title='处理进度'] - 模态框标题
-   */
-  constructor(app, title = "\u5904\u7406\u8FDB\u5EA6") {
-    super(app);
-    /** 进度步骤列表 */
-    this.steps = [];
-    /** 步骤元素映射 */
-    this.stepElements = /* @__PURE__ */ new Map();
-    /** 进度容器元素 */
-    this.progressContainer = null;
-    /** 进度更新定时器 */
-    this.progressUpdateInterval = null;
-    this.modalTitle = title;
+// src/waitlist.ts
+var WaitlistManager = class {
+  constructor() {
+    /** 等待队列数组 */
+    this.waitlist = [];
+    /** 事件监听器映射 */
+    this.listeners = /* @__PURE__ */ new Map();
   }
   /**
-   * 模态框打开时的初始化
-   * 
-   * @returns {void}
+   * 向等待队列中添加新项
+   * @param url - 网址
+   * @param type - 处理类型，默认为 'full'
    */
-  onOpen() {
-    const { contentEl } = this;
-    contentEl.empty();
-    contentEl.addClass("bookmark-progress-modal");
-    contentEl.createEl("h2", { text: this.modalTitle });
-    this.addCustomStyles(contentEl);
-    this.progressContainer = contentEl.createDiv("progress-steps-container");
-  }
-  /**
-   * 添加自定义样式
-   * @private
-   * @param {HTMLElement} contentEl - 内容元素
-   * @returns {void}
-   */
-  addCustomStyles(contentEl) {
-    contentEl.createEl("style", { text: `
-			.bookmark-progress-modal {
-				padding: 20px;
-			}
-			
-			.bookmark-progress-modal h2 {
-				margin-bottom: 20px;
-				text-align: center;
-				color: var(--text-normal);
-			}
-			
-			.progress-steps-container {
-				display: flex;
-				flex-direction: column;
-				gap: 8px;
-			}
-			
-			.progress-step {
-				display: flex;
-				align-items: center;
-				padding: 8px 12px;
-				border-radius: 4px;
-				transition: all 0.3s ease;
-			}
-			
-			/* \u72B6\u6001\u6587\u5B57\u989C\u8272\u53D8\u5316 */
-			.progress-step.processing .step-name {
-				color: #007acc; /* \u84DD\u8272 */
-			}
-			
-			.progress-step.completed .step-name {
-				color: #28a745; /* \u7EFF\u8272 */
-			}
-			
-			.progress-step.failed .step-name {
-				color: #dc3545; /* \u7EA2\u8272 */
-			}
-			
-			.progress-step.pending .step-name {
-				color: #6c757d; /* \u6D45\u7070\u8272 */
-			}
-			
-			.step-icon {
-				width: 20px;
-				height: 20px;
-				margin-right: 10px;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				flex-shrink: 0;
-			}
-			
-			.step-icon svg {
-				width: 14px;
-				height: 14px;
-			}
-			
-			.step-content {
-				flex: 1;
-				display: flex;
-				flex-direction: column;
-				gap: 2px;
-			}
-			
-			.step-name {
-				font-weight: normal;
-				color: var(--text-normal);
-				transition: color 0.3s ease;
-				font-size: 14px;
-				line-height: 1.4;
-			}
-			
-			.step-description {
-				font-size: 12px;
-				color: var(--text-muted);
-				line-height: 1.3;
-			}
-			
-			.step-progress {
-				display: flex;
-				align-items: center;
-				gap: 8px;
-				margin-left: auto;
-				flex-shrink: 0;
-			}
-			
-			.progress-percentage {
-				font-size: 0.9em;
-				color: var(--text-muted);
-				min-width: 40px;
-				text-align: right;
-			}
-			
-			/* \u52A0\u8F7D\u52A8\u753B */
-			.loading-spinner {
-				width: 16px;
-				height: 16px;
-				border: 2px solid var(--background-modifier-border);
-				border-top: 2px solid var(--interactive-accent);
-				border-radius: 50%;
-				animation: spin 1s linear infinite;
-			}
-			
-			@keyframes spin {
-				0% { transform: rotate(0deg); }
-				100% { transform: rotate(360deg); }
-			}
-			
-			/* \u5B8C\u6210\u56FE\u6807 */
-			.check-icon {
-				color: var(--interactive-success);
-			}
-			
-			/* \u5931\u8D25\u56FE\u6807 */
-			.error-icon {
-				color: var(--interactive-failure);
-			}
-		`, type: "text/css" });
-  }
-  /**
-   * 设置进度步骤
-   * @param {ProgressStep[]} steps - 步骤列表
-   * @returns {void}
-   */
-  setSteps(steps) {
-    this.steps = steps;
-    this.renderSteps();
-  }
-  /**
-   * 渲染步骤列表
-   * @private
-   * @returns {void}
-   */
-  renderSteps() {
-    if (!this.progressContainer)
-      return;
-    this.progressContainer.empty();
-    this.stepElements.clear();
-    this.steps.forEach((step) => {
-      const stepElement = this.createStepElement(step);
-      this.progressContainer.appendChild(stepElement);
-      this.stepElements.set(step.id, stepElement);
-    });
-  }
-  /**
-   * 创建步骤元素
-   * @private
-   * @param {ProgressStep} step - 步骤数据
-   * @returns {HTMLElement} 步骤DOM元素
-   */
-  createStepElement(step) {
-    const stepDiv = document.createElement("div");
-    stepDiv.className = `progress-step ${step.status}`;
-    stepDiv.id = `step-${step.id}`;
-    const iconDiv = stepDiv.createDiv("step-icon");
-    this.updateStepIcon(iconDiv, step.status);
-    const contentDiv = stepDiv.createDiv("step-content");
-    contentDiv.createDiv("step-name").setText(step.name);
-    if (step.description) {
-      contentDiv.createDiv("step-description").setText(step.description);
-    }
-    const progressDiv = stepDiv.createDiv("step-progress");
-    if (step.status === "processing" /* PROCESSING */) {
-      progressDiv.createDiv("loading-spinner");
-    }
-    const progressPercentage = this.calculateProgress(step);
-    progressDiv.createDiv("progress-percentage").setText(`${progressPercentage}%`);
-    return stepDiv;
-  }
-  /**
-   * 更新步骤图标
-   * @private
-   * @param {HTMLElement} iconDiv - 图标容器
-   * @param {ProgressStatus} status - 状态
-   * @returns {void}
-   */
-  updateStepIcon(iconDiv, status) {
-    iconDiv.empty();
-    switch (status) {
-      case "pending" /* PENDING */:
-        iconDiv.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>';
-        break;
-      case "processing" /* PROCESSING */:
-        iconDiv.innerHTML = '<div class="loading-spinner"></div>';
-        break;
-      case "completed" /* COMPLETED */:
-        iconDiv.innerHTML = '<svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg>';
-        break;
-      case "failed" /* FAILED */:
-        iconDiv.innerHTML = '<svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
-        break;
-    }
-  }
-  /**
-   * 更新步骤状态
-   * @param {string} stepId - 步骤ID
-   * @param {ProgressStatus} status - 新状态
-   * @param {number} [progress] - 进度百分比（可选）
-   * @param {string} [description] - 描述（可选）
-   * @returns {void}
-   */
-  updateStep(stepId, status, progress, description) {
-    const step = this.steps.find((s) => s.id === stepId);
-    if (!step)
-      return;
-    step.status = status;
-    if (progress !== void 0)
-      step.progress = progress;
-    if (description !== void 0)
-      step.description = description;
-    if (status === "processing" /* PROCESSING */ && !step.startTime) {
-      step.startTime = Date.now();
-      this.startProgressUpdate();
-    } else if (status !== "processing" /* PROCESSING */ && step.startTime) {
-      this.stopProgressUpdate();
-    }
-    const stepElement = this.stepElements.get(stepId);
-    if (!stepElement)
-      return;
-    stepElement.className = `progress-step ${status}`;
-    const iconDiv = stepElement.querySelector(".step-icon");
-    if (iconDiv) {
-      this.updateStepIcon(iconDiv, status);
-    }
-    this.updateStepProgress(stepElement, step);
-    if (description !== void 0) {
-      const descriptionDiv = stepElement.querySelector(".step-description");
-      if (descriptionDiv) {
-        descriptionDiv.textContent = description;
-      } else {
-        const contentDiv = stepElement.querySelector(".step-content");
-        if (contentDiv) {
-          contentDiv.createDiv("step-description").setText(description);
-        }
-      }
-    }
-  }
-  /**
-   * 更新步骤进度显示
-   * @private
-   * @param {HTMLElement} stepElement - 步骤元素
-   * @param {ProgressStep} step - 步骤数据
-   * @returns {void}
-   */
-  updateStepProgress(stepElement, step) {
-    let progressDiv = stepElement.querySelector(".step-progress");
-    if (!progressDiv) {
-      progressDiv = stepElement.createDiv("step-progress");
-    }
-    progressDiv.empty();
-    if (step.status === "processing" /* PROCESSING */) {
-      progressDiv.createDiv("loading-spinner");
-      const progress = this.calculateProgress(step);
-      progressDiv.createDiv("progress-percentage").setText(`${progress}%`);
-    } else if (step.status === "completed" /* COMPLETED */) {
-      progressDiv.createDiv("progress-percentage").setText("100%");
-    } else if (step.status === "failed" /* FAILED */) {
-      const progress = step.progress || 0;
-      progressDiv.createDiv("progress-percentage").setText(`${progress}%`);
+  add(url, type = "full") {
+    const status = {};
+    if (type === "full") {
+      steps.full.forEach((step) => {
+        status[step.name] = { step: step.name, status: "pending" };
+      });
     } else {
-      progressDiv.createDiv("progress-percentage").setText("0%");
+      steps.simple.forEach((step) => {
+        status[step.name] = { step: step.name, status: "pending" };
+      });
+    }
+    const item = { url, status };
+    this.waitlist.push(item);
+    this.emit("add", { url, type, item, count: this.waitlist.length });
+    return this.waitlist.length;
+  }
+  /**
+   * 读取队列中的第n个元素
+   * @param n - 元素索引，默认为 0
+   * @returns 第n个元素，如果索引超出范围则返回 null
+   */
+  read(n = 0) {
+    const item = this.waitlist[n] || null;
+    this.emit("read", { item, count: this.waitlist.length, index: n });
+    return item;
+  }
+  /**
+   * 删除队列中的第一个元素
+   * @returns 被删除的元素，如果队列为空则返回 null
+   */
+  remove() {
+    const item = this.waitlist.shift() || null;
+    if (item) {
+      this.emit("remove", { item, count: this.waitlist.length });
+    }
+    return item;
+  }
+  /**
+   * 清空等待队列
+   */
+  clear() {
+    this.waitlist = [];
+    this.emit("clear", { count: 0 });
+  }
+  /**
+   * 更新队列中第n个元素的状态
+   * @param step - 要更新的步骤名称
+   * @param status - 新的状态值
+   * @param n - 元素索引，默认为 0
+   */
+  update(step, status, n = 0) {
+    const item = this.waitlist[n];
+    if (item && item.status[step]) {
+      const oldStatus = item.status[step].status;
+      item.status[step].status = status;
+      this.emit("update", { url: item.url, step, oldStatus, newStatus: status, index: n, count: this.waitlist.length });
     }
   }
   /**
-   * 计算进度百分比
-   * @private
-   * @param {ProgressStep} step - 步骤数据
-   * @returns {number} 进度百分比
+   * 订阅事件
+   * @param event - 事件类型
+   * @param listener - 事件监听器
    */
-  calculateProgress(step) {
-    if (step.progress !== void 0) {
-      return step.progress;
+  subscribe(event, listener) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, /* @__PURE__ */ new Set());
     }
-    if (step.estimatedTime && step.startTime) {
-      const elapsed = (Date.now() - step.startTime) / 1e3;
-      const progress = Math.min(Math.round(elapsed / step.estimatedTime * 100), 99);
-      return progress;
-    }
-    return 0;
+    this.listeners.get(event).add(listener);
   }
   /**
-   * 更新步骤进度
-   * @param {string} stepId - 步骤ID
-   * @param {number} progress - 进度百分比
-   * @param {string} [description] - 描述（可选）
-   * @returns {void}
+   * 取消订阅事件
+   * @param event - 事件类型
+   * @param listener - 事件监听器
    */
-  updateProgress(stepId, progress, description) {
-    this.updateStep(stepId, "processing" /* PROCESSING */, progress, description);
-  }
-  /**
-   * 设置步骤的预估时间
-   * @param {string} stepId - 步骤ID
-   * @param {number} estimatedTime - 预估时间（秒）
-   * @returns {void}
-   */
-  setStepEstimatedTime(stepId, estimatedTime) {
-    const step = this.steps.find((s) => s.id === stepId);
-    if (step) {
-      step.estimatedTime = estimatedTime;
+  unsubscribe(event, listener) {
+    const listeners = this.listeners.get(event);
+    if (listeners) {
+      listeners.delete(listener);
     }
   }
   /**
-   * 完成步骤
-   * @param {string} stepId - 步骤ID
-   * @param {string} [description] - 描述（可选）
-   * @returns {void}
+   * 触发事件
+   * @param event - 事件类型
+   * @param data - 事件数据
    */
-  completeStep(stepId, description) {
-    this.updateStep(stepId, "completed" /* COMPLETED */, 100, description);
-  }
-  /**
-   * 失败步骤
-   * @param {string} stepId - 步骤ID
-   * @param {string} error - 错误信息
-   * @returns {void}
-   */
-  failStep(stepId, error) {
-    this.updateStep(stepId, "failed" /* FAILED */, void 0, error);
-  }
-  /**
-   * 开始实时更新进度
-   * @private
-   * @returns {void}
-   */
-  startProgressUpdate() {
-    this.stopProgressUpdate();
-    this.progressUpdateInterval = window.setInterval(() => {
-      this.updateProcessingStepsProgress();
-    }, 500);
-  }
-  /**
-   * 停止实时更新进度
-   * @private
-   * @returns {void}
-   */
-  stopProgressUpdate() {
-    if (this.progressUpdateInterval) {
-      window.clearInterval(this.progressUpdateInterval);
-      this.progressUpdateInterval = null;
+  emit(event, data) {
+    const listeners = this.listeners.get(event);
+    if (listeners) {
+      listeners.forEach((listener) => listener(data));
     }
   }
   /**
-   * 更新所有处理中步骤的进度
-   * @private
-   * @returns {void}
+   * 获取当前队列长度
    */
-  updateProcessingStepsProgress() {
-    this.steps.forEach((step) => {
-      if (step.status === "processing" /* PROCESSING */) {
-        const stepElement = this.stepElements.get(step.id);
-        if (stepElement) {
-          this.updateStepProgress(stepElement, step);
-        }
-      }
-    });
+  get length() {
+    return this.waitlist.length;
   }
   /**
-   * 模态框关闭时的清理
-   * 
-   * @returns {void}
+   * 获取队列副本（防止外部修改）
    */
-  onClose() {
-    const { contentEl } = this;
-    contentEl.empty();
-    this.stepElements.clear();
-    this.stopProgressUpdate();
+  get items() {
+    return [...this.waitlist];
+  }
+};
+var waitlist = new WaitlistManager();
+
+// src/workflow.ts
+var import_obsidian4 = require("obsidian");
+
+// src/types.ts
+var WorkflowCancellationError = class extends Error {
+  constructor(message = "\u5DE5\u4F5C\u6D41\u5DF2\u53D6\u6D88") {
+    super(message);
+    this.name = "WorkflowCancellationError";
   }
 };
 
-// src/addByYAML.ts
-var BookmarkYamlCreator = class {
+// src/ApiCaller.ts
+var import_obsidian2 = require("obsidian");
+var AiService = class {
   /**
    * 构造函数
-   * @param {App} app - Obsidian应用实例
    * @param {BookmarkCreatorSettings} settings - 插件设置
    */
+  constructor(settings) {
+    this.settings = settings;
+  }
+  /**
+   * 调用AI API
+   * @param {string} url - 要处理的URL
+   * @param {AiServiceType} type - 服务类型（jinaReader、jinaSearch或openai）
+   * @param {siteInfoObj} [siteInfo] - 可选的站点信息对象，用于openai服务
+   * @returns {Promise<string>} 处理后的内容或错误消息
+   * @throws {Error} 当服务类型无效、API密钥未设置、URL格式错误或API调用失败时抛出错误
+   */
+  async callApi(url, type, siteInfo) {
+    var _a, _b, _c, _d, _e;
+    if (type === "jinaReader" || type === "jinaSearch") {
+      if (!this.settings.jinaApiKey) {
+        throw new Error("Jina AI API\u5BC6\u94A5\u672A\u8BBE\u7F6E");
+      }
+      try {
+        new URL(url);
+      } catch (e) {
+        throw new Error("\u65E0\u6548\u7684\u7F51\u5740\u683C\u5F0F");
+      }
+    } else if (type === "openai") {
+      if (!this.settings.aiApiKey) {
+        throw new Error("AI API\u5BC6\u94A5\u672A\u8BBE\u7F6E");
+      }
+      try {
+        new URL(this.settings.aiApiBaseUrl);
+      } catch (e) {
+        throw new Error("AI API\u57FA\u7840URL\u683C\u5F0F\u65E0\u6548");
+      }
+    } else {
+      throw new Error(`\u672A\u77E5\u7684AI\u670D\u52A1\u7C7B\u578B: ${type}`);
+    }
+    const typeNames = {
+      "jinaReader": "Jina AI \u8BFB\u53D6\u5668",
+      "jinaSearch": "Jina AI \u641C\u7D22\u5668",
+      "openai": "AI \u5904\u7406\u5668"
+    };
+    const serviceName = typeNames[type];
+    let response;
+    try {
+      if (type === "jinaReader") {
+        response = await (0, import_obsidian2.requestUrl)({
+          url: `https://r.jina.ai/${encodeURIComponent(url)}`,
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${this.settings.jinaApiKey}`,
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+          }
+        });
+      } else if (type === "jinaSearch") {
+        const domain = new URL(url).hostname;
+        response = await (0, import_obsidian2.requestUrl)({
+          url: `https://s.jina.ai/${encodeURIComponent(domain)}`,
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${this.settings.jinaApiKey}`,
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+          }
+        });
+      } else if (type === "openai") {
+        response = await this.generateBookmarkYaml(url, siteInfo.webContent, siteInfo.searchInfo);
+      }
+      if (response.status === 200) {
+        const data = JSON.parse(response.text);
+        const content = (type === "openai" ? (_c = (_b = (_a = data.choices) == null ? void 0 : _a[0]) == null ? void 0 : _b.message) == null ? void 0 : _c.content : ((_d = data.data) == null ? void 0 : _d.content) || ((_e = data == null ? void 0 : data.data) == null ? void 0 : _e.toString()) || data.content) || "";
+        if (!content || content.trim().length === 0) {
+          console.log(`${serviceName}: API\u8FD4\u56DE\u5185\u5BB9\u4E3A\u7A7A:`, data);
+        }
+        return content;
+      } else if (response.status === 401) {
+        throw new Error(`${serviceName}: API\u5BC6\u94A5\u65E0\u6548\u6216\u5DF2\u8FC7\u671F`);
+      } else if (response.status === 429) {
+        throw new Error(`${serviceName}: API\u8BF7\u6C42\u8FC7\u4E8E\u9891\u7E41\uFF0C\u8BF7\u7A0D\u540E\u518D\u8BD5`);
+      } else if (response.status >= 500) {
+        throw new Error(`${serviceName}: \u670D\u52A1\u6682\u65F6\u4E0D\u53EF\u7528\uFF0C\u8BF7\u7A0D\u540E\u518D\u8BD5`);
+      } else {
+        throw new Error(`${serviceName}: API\u8FD4\u56DE\u9519\u8BEF\uFF0C\u72B6\u6001\u7801: ${response.status}`);
+      }
+    } catch (error) {
+      console.error(`${serviceName}: \u8C03\u7528API\u65F6\u53D1\u751F\u9519\u8BEF:`, error);
+      if (error instanceof Error) {
+        throw new Error(`AI\u4E66\u7B7E\u751F\u6210\u5931\u8D25: ${error.message}`);
+      } else {
+        throw new Error("AI\u4E66\u7B7E\u751F\u6210\u5931\u8D25: \u672A\u77E5\u9519\u8BEF");
+      }
+    }
+  }
+  /**
+   * 使用AI生成书签YAML信息
+   * @param {string} url - 网页URL
+   * @param {string} webContent - 网页内容
+   * @param {string} searchInfo - 搜索信息
+   * @returns {Promise<string>} 生成的YAML内容
+   * @throws {Error} 当API调用失败或生成内容无效时抛出错误
+   */
+  async generateBookmarkYaml(url, webContent, searchInfo) {
+    const truncatedWebContent = webContent.length > 2e3 ? webContent.substring(0, 2e3) + "..." : webContent;
+    const truncatedSearchInfo = searchInfo.length > 8e3 ? searchInfo.substring(0, 8e3) + "..." : searchInfo;
+    const prompt = `${this.settings.aiPromptTemplate}
+
+## \u7F51\u9875\u5185\u5BB9\uFF1A
+${truncatedWebContent}
+
+## \u641C\u7D22\u4FE1\u606F\uFF1A
+${truncatedSearchInfo}
+
+## \u76EE\u6807\u7F51\u5740\uFF1A
+${url}
+`;
+    const response = await (0, import_obsidian2.requestUrl)({
+      url: `${this.settings.aiApiBaseUrl}/chat/completions`,
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${this.settings.aiApiKey}`,
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+      },
+      body: JSON.stringify({
+        model: this.settings.aiApiModel,
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.3,
+        // 降低温度以获得更稳定的输出
+        max_tokens: 1500,
+        // 减少最大token数以避免过长的响应
+        top_p: 0.9
+      })
+    });
+    return response;
+  }
+};
+
+// src/FileManager.ts
+var import_obsidian3 = require("obsidian");
+var FileManager = class {
   constructor(app, settings) {
     this.app = app;
     this.settings = settings;
   }
   /**
-   * 从YAML数据创建书签笔记
-   * 主要功能入口，处理完整的笔记创建流程
-   * 
-   * @param {BookmarkYamlData} yamlData - 从YAML解析的书签数据
-   * @returns {Promise<void>}
-   * @throws {Error} 当创建过程中出现错误时抛出
-   */
-  async createBookmarkNoteFromYaml(yamlData) {
-    let progressModal = null;
-    let steps = [];
-    try {
-      progressModal = new ProgressModal(this.app, "\u521B\u5EFA\u4E66\u7B7E\u7B14\u8BB0");
-      steps = [
-        { id: "prepare", name: "\u51C6\u5907\u73AF\u5883", status: "pending" /* PENDING */ },
-        { id: "validate", name: "\u9A8C\u8BC1\u6570\u636E", status: "pending" /* PENDING */ },
-        { id: "screenshot", name: "\u751F\u6210\u622A\u56FE", status: "pending" /* PENDING */, estimatedTime: 60 },
-        // 生成截图：60秒
-        { id: "content", name: "\u6784\u5EFA\u5185\u5BB9", status: "pending" /* PENDING */ },
-        { id: "create", name: "\u521B\u5EFA\u6587\u4EF6", status: "pending" /* PENDING */ },
-        { id: "open", name: "\u6253\u5F00\u7B14\u8BB0", status: "pending" /* PENDING */ }
-      ];
-      progressModal.setSteps(steps);
-      setTimeout(() => {
-        progressModal == null ? void 0 : progressModal.open();
-      }, 0);
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      console.log("\u6B65\u9AA41: \u51C6\u5907\u73AF\u5883 - \u5F00\u59CB");
-      progressModal.updateStep("prepare", "processing" /* PROCESSING */);
-      await this.ensureFolderExists(this.settings.bookmarkFolder);
-      await this.ensureFolderExists(this.settings.attachmentFolder);
-      progressModal.completeStep("prepare");
-      console.log("\u6B65\u9AA41: \u51C6\u5907\u73AF\u5883 - \u5B8C\u6210");
-      console.log("\u6B65\u9AA42: \u9A8C\u8BC1\u6570\u636E - \u5F00\u59CB");
-      progressModal.updateStep("validate", "processing" /* PROCESSING */);
-      const validatedData = this.validateAndProcessYamlData(yamlData);
-      progressModal.completeStep("validate");
-      console.log("\u6B65\u9AA42: \u9A8C\u8BC1\u6570\u636E - \u5B8C\u6210");
-      console.log("\u6B65\u9AA43: \u751F\u6210\u622A\u56FE - \u5F00\u59CB");
-      progressModal.updateStep("screenshot", "processing" /* PROCESSING */);
-      const screenshotFileName = await this.generateAndDownloadScreenshotWithProgress(
-        validatedData.title,
-        validatedData.url,
-        progressModal
-      );
-      progressModal.completeStep("screenshot");
-      console.log("\u6B65\u9AA43: \u751F\u6210\u622A\u56FE - \u5B8C\u6210");
-      console.log("\u6B65\u9AA44: \u6784\u5EFA\u5185\u5BB9 - \u5F00\u59CB");
-      progressModal.updateStep("content", "processing" /* PROCESSING */);
-      const noteContent = this.buildNoteContent({
-        ...validatedData,
-        screenshotFileName
-      });
-      progressModal.completeStep("content");
-      console.log("\u6B65\u9AA44: \u6784\u5EFA\u5185\u5BB9 - \u5B8C\u6210");
-      console.log("\u6B65\u9AA45: \u521B\u5EFA\u6587\u4EF6 - \u5F00\u59CB");
-      progressModal.updateStep("create", "processing" /* PROCESSING */);
-      const file = await this.createNoteFile(validatedData.title, noteContent);
-      progressModal.completeStep("create");
-      console.log("\u6B65\u9AA45: \u521B\u5EFA\u6587\u4EF6 - \u5B8C\u6210");
-      console.log("\u6B65\u9AA46: \u6253\u5F00\u7B14\u8BB0 - \u5F00\u59CB");
-      progressModal.updateStep("open", "processing" /* PROCESSING */);
-      await this.app.workspace.getLeaf().openFile(file);
-      progressModal.completeStep("open");
-      console.log("\u6B65\u9AA46: \u6253\u5F00\u7B14\u8BB0 - \u5B8C\u6210");
-      setTimeout(() => {
-        progressModal == null ? void 0 : progressModal.close();
-      }, 1500);
-      console.log(`\u4E66\u7B7E\u7B14\u8BB0 "${validatedData.title}" \u521B\u5EFA\u6210\u529F\uFF01`);
-    } catch (error) {
-      console.error("\u521B\u5EFA\u4E66\u7B7E\u7B14\u8BB0\u5931\u8D25:", error);
-      if (progressModal) {
-        const currentStep = steps.find((step) => step.status === "processing" /* PROCESSING */);
-        if (currentStep) {
-          progressModal.failStep(currentStep.id, error.message);
-        }
-        setTimeout(() => {
-          progressModal == null ? void 0 : progressModal.close();
-        }, 5e3);
-      }
-    }
-  }
-  /**
-   * 验证和处理YAML数据
-   * 确保所有必需字段都存在且格式正确
-   * 
-   * @private
-   * @param {BookmarkYamlData} yamlData - 原始YAML数据
-   * @returns {NoteContentData} 处理后的完整数据
-   * @throws {Error} 当数据验证失败时抛出错误
-   */
-  validateAndProcessYamlData(yamlData) {
-    let title = yamlData.title || "";
-    const url = yamlData.url || "";
-    const description = yamlData.description || "";
-    const tags = yamlData.tags || [];
-    let created = yamlData.created;
-    if (!created) {
-      const now = new Date();
-      created = now.toISOString().slice(0, 19).replace("T", " ");
-    } else if (created && !created.includes(":")) {
-      const now = new Date();
-      const time = now.toTimeString().slice(0, 8);
-      created = `${created} ${time}`;
-    }
-    if (!title) {
-      throw new Error("\u6807\u9898\u4E0D\u80FD\u4E3A\u7A7A");
-    }
-    if (!url) {
-      throw new Error("URL\u4E0D\u80FD\u4E3A\u7A7A");
-    }
-    try {
-      new URL(url);
-    } catch (e) {
-      throw new Error("URL\u683C\u5F0F\u65E0\u6548");
-    }
-    return {
-      created,
-      title,
-      url,
-      description,
-      tags,
-      screenshotFileName: ""
-      // 将在后续步骤中填充
-    };
-  }
-  /**
-   * 生成并下载网站截图（带进度显示）
-   * 
-   * @private
-   * @param {string} title - 网站标题，用于生成文件名
-   * @param {string} url - 网站URL
-   * @param {ProgressModal} progressModal - 进度模态框
-   * @returns {Promise<string>} 截图文件名
-   * @throws {Error} 当截图生成失败时抛出错误
-   */
-  async generateAndDownloadScreenshotWithProgress(title, url, progressModal) {
-    const safeTitle = this.sanitizeFileName(title);
-    const screenshotFileName = `${safeTitle}.png`;
-    const screenshotPath = `${this.settings.attachmentFolder}/${screenshotFileName}`;
-    const waitTime = this.extractWaitTimeFromScreenshotUrl(url) || 12;
-    const totalTime = waitTime + 10;
-    console.log(`\u622A\u56FE\u7B49\u5F85\u65F6\u95F4: ${waitTime}\u79D2\uFF0C\u603B\u9884\u8BA1\u65F6\u95F4: ${totalTime}\u79D2`);
-    const downloadPromise = this.downloadScreenshot(
-      `https://image.thum.io/get/wait/${waitTime}/viewportWidth/1600/width/1440/crop/900/png/noanimate/${url}`,
-      screenshotPath
-    );
-    await this.simulateProgressWithRealTime(progressModal, "screenshot", totalTime);
-    await downloadPromise;
-    return screenshotFileName;
-  }
-  /**
-   * 从截图URL中提取等待时间
-   * 
-   * @private
-   * @param {string} url - 截图服务URL
-   * @returns {number | null} 等待时间（秒）
-   */
-  extractWaitTimeFromScreenshotUrl(url) {
-    const waitMatch = url.match(/wait\/(\d+)/);
-    if (waitMatch) {
-      return parseInt(waitMatch[1], 10);
-    }
-    return null;
-  }
-  /**
-   * 模拟实时进度更新
-   * 
-   * @private
-   * @param {ProgressModal} progressModal - 进度模态框
-   * @param {string} stepId - 步骤ID
-   * @param {number} totalTime - 总时间（秒）
-   * @returns {Promise<void>}
-   */
-  async simulateProgressWithRealTime(progressModal, stepId, totalTime) {
-    const startTime = Date.now();
-    const updateInterval = 500;
-    let lastProgress = 0;
-    return new Promise((resolve) => {
-      const interval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(Math.round(elapsed / (totalTime * 1e3) * 100), 95);
-        if (progress !== lastProgress) {
-          progressModal.updateProgress(stepId, progress, `\u6B63\u5728\u5904\u7406... ${progress}%`);
-          lastProgress = progress;
-        }
-        if (elapsed >= totalTime * 1e3) {
-          clearInterval(interval);
-          resolve();
-        }
-      }, updateInterval);
-    });
-  }
-  /**
-   * 生成并下载网站截图
-   * 
-   * @private
-   * @param {string} title - 网站标题，用于生成文件名
-   * @param {string} url - 网站URL
-   * @returns {Promise<string>} 截图文件名
-   * @throws {Error} 当截图下载失败时抛出错误
-   */
-  async generateAndDownloadScreenshot(title, url) {
-    const safeTitle = this.sanitizeFileName(title);
-    const screenshotFileName = `${safeTitle}.png`;
-    const screenshotPath = `${this.settings.attachmentFolder}/${screenshotFileName}`;
-    const screenshotUrl = `https://image.thum.io/get/wait/12/viewportWidth/1600/width/1440/crop/900/png/noanimate/${url}`;
-    await this.downloadScreenshot(screenshotUrl, screenshotPath);
-    return screenshotFileName;
-  }
-  /**
-   * 创建笔记文件
-   * 
-   * @private
-   * @param {string} title - 笔记标题
-   * @param {string} content - 笔记内容
-   * @returns {Promise<TFile>} 创建的文件对象
-   * @throws {Error} 当文件创建失败时抛出错误
-   */
-  async createNoteFile(title, content) {
-    const safeTitle = this.sanitizeFileName(title);
-    const fileName = `${safeTitle}.md`;
-    const filePath = `${this.settings.bookmarkFolder}/${fileName}`;
-    const finalFilePath = await this.ensureFileCanBeCreated(filePath);
-    return await this.app.vault.create(finalFilePath, content);
-  }
-  /**
    * 确保文件夹存在
-   * 
-   * @private
-   * @param {string} folderPath - 文件夹路径
-   * @returns {Promise<void>}
-   * @throws {Error} 当文件夹创建失败时抛出错误
+   * @param folderPath - 文件夹路径
+   * @returns 是否创建了新文件夹
    */
   async ensureFolderExists(folderPath) {
+    const isExist = await this.app.vault.adapter.exists(folderPath);
     try {
-      const folder = this.app.vault.getAbstractFileByPath(folderPath);
-      if (!folder) {
+      if (!isExist) {
         await this.app.vault.createFolder(folderPath);
-        return;
-      }
-      if (!(folder instanceof import_obsidian3.TFolder)) {
-        throw new Error(`\u8DEF\u5F84 "${folderPath}" \u5DF2\u5B58\u5728\u4F46\u4E0D\u662F\u6587\u4EF6\u5939`);
+        return true;
+      } else {
+        return false;
       }
     } catch (error) {
-      if (error instanceof Error && error.message && error.message.includes("Folder already exists")) {
-        console.log(`\u6587\u4EF6\u5939 "${folderPath}" \u5DF2\u5B58\u5728\uFF0C\u8DF3\u8FC7\u521B\u5EFA`);
-        return;
-      }
-      throw error;
+      new import_obsidian3.Notice(`\u521B\u5EFA\u6587\u4EF6\u5939 ${folderPath} \u5931\u8D25`);
+      return false;
     }
   }
   /**
-   * 清理文件名，移除非法字符
-   * 
-   * @private
-   * @param {string} fileName - 原始文件名
-   * @returns {string} 清理后的文件名
-   */
+  * 清理文件名，移除非法字符
+  * 
+  * @param {string} fileName - 原始文件名
+  * @returns {string} 清理后的文件名
+  */
   sanitizeFileName(fileName) {
     return fileName.replace(/[<>:\"/\\|?*]/g, "_").replace(/\s+/g, " ").trim();
   }
   /**
-   * 下载截图
-   * 
-   * @private
-   * @param {string} url - 截图URL
-   * @param {string} filePath - 保存的文件路径
-   * @returns {Promise<void>}
-   * @throws {Error} 当下载失败时抛出错误
-   */
-  async downloadScreenshot(url, filePath) {
-    console.log("Downloading screenshot from:", url);
-    try {
-      const response = await (0, import_obsidian3.requestUrl)({
-        url,
-        method: "GET",
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
-      });
-      if (response.status === 200) {
-        console.log("Screenshot downloaded successfully");
-        await this.app.vault.createBinary(filePath, response.arrayBuffer);
-      } else {
-        throw new Error(`\u622A\u56FE\u4E0B\u8F7D\u5931\u8D25\uFF0C\u72B6\u6001\u7801: ${response.status}`);
-      }
-    } catch (error) {
-      console.error("\u4E0B\u8F7D\u622A\u56FE\u5931\u8D25:", error);
-      if (error instanceof Error) {
-        throw new Error(`\u65E0\u6CD5\u4E0B\u8F7D\u7F51\u7AD9\u622A\u56FE: ${error.message}`);
-      } else {
-        throw new Error("\u65E0\u6CD5\u4E0B\u8F7D\u7F51\u7AD9\u622A\u56FE: \u672A\u77E5\u9519\u8BEF");
-      }
-    }
-  }
-  /**
-   * 确保文件可以被创建（处理同名文件存在的情况）
-   * 
-   * @private
-   * @param {string} filePath - 原始文件路径
-   * @returns {Promise<string>} 可用的文件路径
-   */
+  * 确保文件可以被创建（处理同名文件存在的情况）
+  * 
+  * @private
+  * @param {string} filePath - 原始文件路径
+  * @returns {Promise<string>} 可用的文件路径
+  */
   async ensureFileCanBeCreated(filePath) {
     const existingFile = this.app.vault.getAbstractFileByPath(filePath);
     if (!existingFile) {
@@ -1051,263 +682,369 @@ var BookmarkYamlCreator = class {
     return newFilePath;
   }
   /**
+  * 创建笔记文件
+  * 
+  * @param {string} title - 笔记标题
+  * @param {string} content - 笔记内容
+  * @returns {Promise<TFile>} 创建的文件对象
+  * @throws {Error} 当文件创建失败时抛出错误
+  */
+  async createNoteFile(title, content) {
+    const safeTitle = this.sanitizeFileName(title);
+    const fileName = `${safeTitle}.md`;
+    const filePath = `${this.settings.bookmarkFolder}/${fileName}`;
+    const finalFilePath = await this.ensureFileCanBeCreated(filePath);
+    return await this.app.vault.create(finalFilePath, content);
+  }
+  /**
+  * 下载截图
+  * 
+  * @param {string} url - 网站URL
+  * @param {string} noteTitle - 笔记标题
+  * @returns {Promise<string>} 截图文件名
+  * @throws {Error} 当下载失败时抛出错误
+  */
+  async downloadScreenshot(url, noteTitle) {
+    const screenshotUrl = `https://image.thum.io/get/wait/12/viewportWidth/1600/width/1440/crop/900/png/noanimate/${url}`;
+    console.log("Downloading screenshot from:", screenshotUrl);
+    try {
+      await this.ensureFolderExists(this.settings.attachmentFolder);
+      const screenshotFileName = `${this.sanitizeFileName(noteTitle)}.png`;
+      const filePath = `${this.settings.attachmentFolder}/${screenshotFileName}`;
+      const response = await (0, import_obsidian3.requestUrl)({
+        url: screenshotUrl,
+        method: "GET",
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        }
+      });
+      if (response.status === 200) {
+        console.log("Screenshot downloaded successfully");
+        await this.app.vault.createBinary(filePath, response.arrayBuffer);
+        return screenshotFileName;
+      } else {
+        throw new Error(`\u622A\u56FE\u4E0B\u8F7D\u5931\u8D25\uFF0C\u72B6\u6001\u7801: ${response.status}`);
+      }
+    } catch (error) {
+      console.error("\u4E0B\u8F7D\u622A\u56FE\u5931\u8D25:", error);
+      if (error instanceof Error) {
+        throw new Error(`\u65E0\u6CD5\u4E0B\u8F7D\u7F51\u7AD9\u622A\u56FE: ${error.message}`);
+      } else {
+        throw new Error("\u65E0\u6CD5\u4E0B\u8F7D\u7F51\u7AD9\u622A\u56FE: \u672A\u77E5\u9519\u8BEF");
+      }
+    }
+  }
+  /**
    * 构建笔记内容
    * 
-   * @private
    * @param {NoteContentData} data - 笔记数据
    * @returns {string} 生成的笔记内容
    */
   buildNoteContent(data) {
-    const tagsString = data.tags.length > 0 ? data.tags.join(", ") : "";
-    const screenshotLink = `screenshot:: ![\u7F51\u7AD9\u622A\u56FE](${this.settings.attachmentFolder}/${encodeURIComponent(data.screenshotFileName)})`;
-    return `---
-created: ${data.created}
-title: "${data.title}"
-url: "${data.url}"
-description: "${data.description}"
-tags: [${tagsString}]
+    const frontmatter = {
+      created: data.created,
+      title: data.title,
+      url: data.url,
+      description: data.description,
+      tags: data.tags
+    };
+    try {
+      return `---
+${(0, import_obsidian3.stringifyYaml)(frontmatter)}
 ---
 
 ## \u7F51\u7AD9\u622A\u56FE
 
-${screenshotLink}
+screenshot:: ![\u7F51\u7AD9\u622A\u56FE](${this.settings.attachmentFolder}/${encodeURIComponent(data.screenshotFileName)})
 
 ## \u7F51\u7AD9\u7B14\u8BB0
 
+${data.bookmarkNote || ""}
 `;
+    } catch (error) {
+      console.error("\u6784\u5EFA\u7B14\u8BB0\u5185\u5BB9\u5931\u8D25:", error);
+      throw new Error("\u6784\u5EFA\u7B14\u8BB0\u5185\u5BB9\u65F6\u51FA\u9519");
+    }
   }
 };
 
-// src/aiService.ts
-var import_obsidian4 = require("obsidian");
-var AiService = class {
+// src/workflow.ts
+var _BookmarkWorkflow = class {
   /**
    * 构造函数
+   * @param {App} app - Obsidian应用实例
    * @param {BookmarkCreatorSettings} settings - 插件设置
+   * @param {BookmarkModal} modal - 模态框实例（可选）
    */
-  constructor(settings) {
+  constructor(app, settings, modal) {
+    /** 成功创建的笔记列表 */
+    this.createdNotes = [];
+    this.app = app;
     this.settings = settings;
+    this.modal = modal || new BookmarkModal(app, settings);
+    this.aiService = new AiService(settings);
+    this.fileManager = new FileManager(app, settings);
+    this.instanceId = Math.random().toString(36).substr(2, 9);
+    this.createdNotes = [];
   }
   /**
-   * 使用Jina AI提取网页内容
-   * @param {string} url - 网页URL
-   * @returns {Promise<string>} 网页内容
-   * @throws {Error} 当API调用失败时抛出错误
+   * 请求取消当前运行的工作流
+   * @returns {void}
    */
-  async extractWebContent(url) {
-    var _a;
-    if (!this.settings.jinaApiKey) {
-      throw new Error("Jina AI API\u5BC6\u94A5\u672A\u8BBE\u7F6E");
+  requestCancellation() {
+    if (_BookmarkWorkflow.isWorkflowRunning && _BookmarkWorkflow.runningInstanceId) {
+      _BookmarkWorkflow.isCancellationRequested = true;
+      _BookmarkWorkflow.cancellingInstanceId = _BookmarkWorkflow.runningInstanceId;
+      console.log(`\u5DE5\u4F5C\u6D41\u53D6\u6D88\u8BF7\u6C42\u5DF2\u53D1\u9001 (\u5B9E\u4F8BID: ${_BookmarkWorkflow.runningInstanceId})`);
     }
-    try {
-      new URL(url);
-    } catch (e) {
-      throw new Error("\u65E0\u6548\u7684\u7F51\u5740\u683C\u5F0F");
+  }
+  /**
+   * 检查是否应该取消当前工作流
+   * @returns {boolean} 是否应该取消
+   * @private
+   */
+  shouldCancel() {
+    return _BookmarkWorkflow.isCancellationRequested && _BookmarkWorkflow.cancellingInstanceId === this.instanceId;
+  }
+  /**
+   * 重置取消状态
+   * @private
+   */
+  resetCancellationState() {
+    _BookmarkWorkflow.isCancellationRequested = false;
+    _BookmarkWorkflow.cancellingInstanceId = null;
+  }
+  /**
+   * 启动URL工作流
+   * @returns {Promise<boolean>} 是否成功创建所有书签
+   */
+  async startURLWorkflow() {
+    if (_BookmarkWorkflow.isWorkflowRunning) {
+      new import_obsidian4.Notice(`\u5DE5\u4F5C\u6D41\u6B63\u5728\u8FD0\u884C\u4E2D (${_BookmarkWorkflow.runningInstanceId})\uFF0C\u8BF7\u7A0D\u5019...`);
+      return false;
     }
+    _BookmarkWorkflow.isWorkflowRunning = true;
+    _BookmarkWorkflow.runningInstanceId = this.instanceId;
+    let currentIndex = 0;
+    let hasError = false;
     try {
-      const response = await (0, import_obsidian4.requestUrl)({
-        url: `https://r.jina.ai/${encodeURIComponent(url)}`,
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${this.settings.jinaApiKey}`,
-          "Accept": "application/json",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+      this.modal.open();
+      this.modal.progressMode(true);
+      while (currentIndex < waitlist.length) {
+        if (this.shouldCancel()) {
+          throw new WorkflowCancellationError();
         }
-      });
-      if (response.status === 200) {
-        const data = JSON.parse(response.text);
-        const content = ((_a = data.data) == null ? void 0 : _a.content) || data.content || "";
-        if (!content || content.trim().length === 0) {
-          throw new Error("\u7F51\u9875\u5185\u5BB9\u4E3A\u7A7A\u6216\u65E0\u6CD5\u63D0\u53D6");
+        const item = waitlist.read(currentIndex);
+        if (!item) {
+          currentIndex++;
+          continue;
         }
-        return content;
-      } else if (response.status === 401) {
-        throw new Error("Jina AI API\u5BC6\u94A5\u65E0\u6548\u6216\u5DF2\u8FC7\u671F");
-      } else if (response.status === 429) {
-        throw new Error("Jina AI API\u8BF7\u6C42\u8FC7\u4E8E\u9891\u7E41\uFF0C\u8BF7\u7A0D\u540E\u518D\u8BD5");
-      } else if (response.status >= 500) {
-        throw new Error("Jina AI\u670D\u52A1\u6682\u65F6\u4E0D\u53EF\u7528\uFF0C\u8BF7\u7A0D\u540E\u518D\u8BD5");
-      } else {
-        throw new Error(`Jina AI API\u8FD4\u56DE\u9519\u8BEF\uFF0C\u72B6\u6001\u7801: ${response.status}`);
+        try {
+          await this.URLWorkflow(item.url, currentIndex);
+        } catch (error) {
+          console.error(`\u5904\u7406URL\u5931\u8D25: ${item.url}`, error);
+          hasError = true;
+        }
+        currentIndex++;
       }
+      waitlist.clear();
+      this.modal.setCreatedNotes(this.createdNotes);
+      this.modal.setTitle("\u5904\u7406\u5B8C\u6210\uFF01");
+      if (!hasError) {
+        new import_obsidian4.Notice("\u6240\u6709\u4E66\u7B7E\u521B\u5EFA\u5B8C\u6210\uFF01");
+      } else {
+        new import_obsidian4.Notice("\u6279\u91CF\u5904\u7406\u5B8C\u6210\uFF0C\u90E8\u5206\u4E66\u7B7E\u521B\u5EFA\u5931\u8D25");
+      }
+      return !hasError;
     } catch (error) {
-      console.error("Jina AI\u5185\u5BB9\u63D0\u53D6\u5931\u8D25:", error);
+      console.error("\u6279\u91CF\u5904\u7406URL\u65F6\u53D1\u751F\u9519\u8BEF:", error);
+      if (error instanceof WorkflowCancellationError) {
+        new import_obsidian4.Notice("\u5DE5\u4F5C\u6D41\u5DF2\u53D6\u6D88");
+      } else {
+        new import_obsidian4.Notice("\u6279\u91CF\u5904\u7406\u5931\u8D25: " + (error instanceof Error ? error.message : "\u672A\u77E5\u9519\u8BEF"));
+      }
+      return false;
+    } finally {
+      _BookmarkWorkflow.isWorkflowRunning = false;
+      _BookmarkWorkflow.runningInstanceId = null;
+      this.resetCancellationState();
+    }
+  }
+  /**
+   * 执行工作流步骤，统一处理状态更新
+   * @param {string} stepId - 步骤ID
+   * @param {Function} stepFunction - 步骤执行函数
+   * @returns {Promise<any>} 步骤执行结果
+   * @private
+   */
+  async executeStep(stepId, stepFunction) {
+    if (this.shouldCancel()) {
+      throw new WorkflowCancellationError();
+    }
+    try {
+      waitlist.update(stepId, "processing");
+      const result = await stepFunction();
+      waitlist.update(stepId, "completed");
+      return result;
+    } catch (error) {
+      waitlist.update(stepId, "failed");
+      throw error;
+    }
+  }
+  /**
+   * 执行完整的书签创建工作流
+   * @param {string} url - 目标网址
+   * @param {number} currentIndex - 当前处理索引
+   * @returns {Promise<boolean>} 是否成功创建书签
+   */
+  async URLWorkflow(url, currentIndex) {
+    try {
+      this.modal.progressMode(true, `\u6B63\u5728\u5904\u7406\u4E2D...${waitlist.length > 1 ? ` (${currentIndex + 1}/${waitlist.length})` : ""} ${new URL(url).hostname}`);
+      const webContent = await this.executeStep("get-web-content", async () => {
+        return await this.aiService.callApi(url, "jinaReader");
+      });
+      const searchInfo = await this.executeStep("get-web-rating", async () => {
+        return await this.aiService.callApi(url, "jinaSearch");
+      });
+      const bookmarkYaml = await this.executeStep("generate-bookmark-info", async () => {
+        return await this.aiService.callApi(url, "openai", {
+          webContent,
+          searchInfo
+        });
+      });
+      const noteData = this.parseGeneratedYaml(bookmarkYaml);
+      noteData.url = url;
+      noteData.screenshotFileName = await this.executeStep("download-web-screenshot", async () => {
+        return await this.fileManager.downloadScreenshot(url, noteData.title);
+      });
+      await this.executeStep("create-bookmark-note", async () => {
+        await this.createBookmarkNote(noteData);
+      });
+      new import_obsidian4.Notice("\u4E66\u7B7E\u521B\u5EFA\u6210\u529F\uFF01");
+      return true;
+    } catch (error) {
+      console.error("\u4E66\u7B7E\u521B\u5EFA\u5DE5\u4F5C\u6D41\u5931\u8D25:", error);
       if (error instanceof Error) {
-        if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
-          throw new Error("\u7F51\u7EDC\u8FDE\u63A5\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5\u7F51\u7EDC\u8BBE\u7F6E");
-        }
-        throw new Error(`\u7F51\u9875\u5185\u5BB9\u63D0\u53D6\u5931\u8D25: ${error.message}`);
+        new import_obsidian4.Notice(`\u4E66\u7B7E\u521B\u5EFA\u5931\u8D25: ${error.message}`);
       } else {
-        throw new Error("\u7F51\u9875\u5185\u5BB9\u63D0\u53D6\u5931\u8D25: \u672A\u77E5\u9519\u8BEF");
+        new import_obsidian4.Notice("\u4E66\u7B7E\u521B\u5EFA\u5931\u8D25: \u672A\u77E5\u9519\u8BEF");
       }
+      return false;
     }
   }
   /**
-   * 使用Jina AI搜索网页相关信息
-   * @param {string} url - 网页URL
-   * @returns {Promise<string>} 搜索结果
-   * @throws {Error} 当API调用失败时抛出错误（可选功能，失败时返回空字符串）
+   * 执行简化的书签创建工作流（仅下载截图和创建笔记）
+   * @param {NoteContentData} noteData - 笔记数据
+   * @returns {Promise<boolean>} 是否成功创建书签
    */
-  async searchWebInfo(url) {
-    var _a;
-    if (!this.settings.jinaApiKey) {
-      throw new Error("Jina AI API\u5BC6\u94A5\u672A\u8BBE\u7F6E");
+  async startYAMLWorkflow(yamlContent) {
+    if (_BookmarkWorkflow.isWorkflowRunning) {
+      new import_obsidian4.Notice(`\u5DE5\u4F5C\u6D41\u6B63\u5728\u8FD0\u884C\u4E2D (${_BookmarkWorkflow.runningInstanceId})\uFF0C\u8BF7\u7A0D\u5019...`);
+      return false;
     }
+    _BookmarkWorkflow.isWorkflowRunning = true;
+    _BookmarkWorkflow.runningInstanceId = this.instanceId;
     try {
-      new URL(url);
-    } catch (e) {
-      throw new Error("\u65E0\u6548\u7684\u7F51\u5740\u683C\u5F0F");
-    }
-    try {
-      const domain = new URL(url).hostname;
-      const searchQuery = `${domain} \u7F51\u7AD9\u8BC4\u4EF7 \u4ECB\u7ECD`;
-      const response = await (0, import_obsidian4.requestUrl)({
-        url: `https://s.jina.ai/${encodeURIComponent(searchQuery)}`,
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${this.settings.jinaApiKey}`,
-          "Accept": "application/json",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
-      });
-      if (response.status === 200) {
-        const data = JSON.parse(response.text);
-        const content = ((_a = data.data) == null ? void 0 : _a.content) || data.content || "";
-        return content;
-      } else if (response.status === 401) {
-        console.warn("Jina AI\u641C\u7D22API\u5BC6\u94A5\u65E0\u6548\uFF0C\u8DF3\u8FC7\u641C\u7D22\u6B65\u9AA4");
-        return "";
-      } else if (response.status === 429) {
-        console.warn("Jina AI\u641C\u7D22API\u8BF7\u6C42\u8FC7\u4E8E\u9891\u7E41\uFF0C\u8DF3\u8FC7\u641C\u7D22\u6B65\u9AA4");
-        return "";
-      } else {
-        console.warn(`Jina AI\u641C\u7D22API\u8FD4\u56DE\u9519\u8BEF\uFF0C\u72B6\u6001\u7801: ${response.status}\uFF0C\u8DF3\u8FC7\u641C\u7D22\u6B65\u9AA4`);
-        return "";
+      let noteData;
+      try {
+        noteData = this.parseGeneratedYaml(yamlContent);
+      } catch (error) {
+        console.error("\u89E3\u6790YAML\u5185\u5BB9\u5931\u8D25:", error);
+        new import_obsidian4.Notice("\u89E3\u6790\u4E66\u7B7E\u4FE1\u606F\u5931\u8D25: \u672A\u77E5\u9519\u8BEF");
+        return false;
       }
+      this.modal.progressMode(false);
+      noteData.screenshotFileName = await this.executeStep("download-web-screenshot", async () => {
+        return await this.fileManager.downloadScreenshot(noteData.url, noteData.title);
+      });
+      await this.executeStep("create-bookmark-note", async () => {
+        await this.createBookmarkNote(noteData);
+      });
+      new import_obsidian4.Notice("\u4E66\u7B7E\u521B\u5EFA\u6210\u529F\uFF01");
+      return true;
     } catch (error) {
-      console.error("Jina AI\u641C\u7D22\u5931\u8D25:", error);
-      return "";
+      console.error("\u7B80\u5316\u4E66\u7B7E\u521B\u5EFA\u5DE5\u4F5C\u6D41\u5931\u8D25:", error);
+      if (error instanceof WorkflowCancellationError) {
+        new import_obsidian4.Notice("\u5DE5\u4F5C\u6D41\u5DF2\u53D6\u6D88");
+      } else if (error instanceof Error) {
+        new import_obsidian4.Notice(`\u4E66\u7B7E\u521B\u5EFA\u5931\u8D25: ${error.message}`);
+      } else {
+        new import_obsidian4.Notice("\u4E66\u7B7E\u521B\u5EFA\u5931\u8D25: \u672A\u77E5\u9519\u8BEF");
+      }
+      return false;
+    } finally {
+      _BookmarkWorkflow.isWorkflowRunning = false;
+      _BookmarkWorkflow.runningInstanceId = null;
+      this.resetCancellationState();
     }
   }
   /**
-   * 使用AI生成书签YAML信息
-   * @param {string} url - 网页URL
-   * @param {string} webContent - 网页内容
-   * @param {string} searchInfo - 搜索信息
-   * @returns {Promise<string>} 生成的YAML内容
-   * @throws {Error} 当API调用失败或生成内容无效时抛出错误
+   * 解析AI生成的YAML内容
+   * @param {string} yamlContent - YAML内容
+   * @returns {NoteContentData} 解析后的笔记数据
+   * @private
    */
-  async generateBookmarkYaml(url, webContent, searchInfo) {
-    var _a, _b, _c;
-    if (!this.settings.aiApiKey) {
-      throw new Error("AI API\u5BC6\u94A5\u672A\u8BBE\u7F6E");
-    }
+  parseGeneratedYaml(yamlContent) {
     try {
-      new URL(this.settings.aiApiBaseUrl);
-    } catch (e) {
-      throw new Error("AI API\u57FA\u7840URL\u683C\u5F0F\u65E0\u6548");
-    }
-    const maxContentLength = 8e3;
-    const truncatedWebContent = webContent.length > maxContentLength ? webContent.substring(0, maxContentLength) + "..." : webContent;
-    const truncatedSearchInfo = searchInfo.length > 2e3 ? searchInfo.substring(0, 2e3) + "..." : searchInfo;
-    const prompt = `${this.settings.aiPromptTemplate}
-
-## \u7F51\u9875\u5185\u5BB9\uFF1A
-${truncatedWebContent}
-
-## \u641C\u7D22\u4FE1\u606F\uFF1A
-${truncatedSearchInfo}
-
-## \u76EE\u6807\u7F51\u5740\uFF1A
-${url}
-
-\u8BF7\u6839\u636E\u4EE5\u4E0A\u4FE1\u606F\u751F\u6210\u5B8C\u6574\u7684\u4E66\u7B7EYAML\u4FE1\u606F\u3002`;
-    try {
-      const response = await (0, import_obsidian4.requestUrl)({
-        url: `${this.settings.aiApiBaseUrl}/chat/completions`,
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${this.settings.aiApiKey}`,
-          "Content-Type": "application/json",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        },
-        body: JSON.stringify({
-          model: this.settings.aiApiModel,
-          messages: [
-            {
-              role: "user",
-              content: prompt
-            }
-          ],
-          temperature: 0.3,
-          // 降低温度以获得更稳定的输出
-          max_tokens: 1500,
-          // 减少最大token数以避免过长的响应
-          top_p: 0.9
-        })
-      });
-      if (response.status === 200) {
-        const data = JSON.parse(response.text);
-        const generatedContent = ((_c = (_b = (_a = data.choices) == null ? void 0 : _a[0]) == null ? void 0 : _b.message) == null ? void 0 : _c.content) || "";
-        if (!generatedContent || generatedContent.trim().length === 0) {
-          throw new Error("AI\u672A\u751F\u6210\u4EFB\u4F55\u5185\u5BB9");
-        }
-        const yamlMatch = generatedContent.match(/```[\s\S]*?\n([\s\S]*?)```|---\s*\n([\s\S]*?)\n---/);
-        let yamlContent;
-        if (yamlMatch) {
-          yamlContent = yamlMatch[1] || yamlMatch[2] || generatedContent;
+      let cleanYaml = yamlContent;
+      const yamlDelimiter = yamlContent.match(/-{3,}\s*\n([\s\S]*?)\n-{3,}/);
+      if (yamlDelimiter) {
+        cleanYaml = yamlDelimiter[1].trim();
+      } else {
+        const yamlCodeBlock = yamlContent.match(/`{3,}ya?ml\s*\n([\s\S]*?)`{3,}/i);
+        if (yamlCodeBlock) {
+          cleanYaml = yamlCodeBlock[1].trim();
         } else {
-          yamlContent = generatedContent;
+          const codeBlock = yamlContent.match(/`{3,}\s*\n([\s\S]*?)`{3,}/);
+          if (codeBlock) {
+            cleanYaml = codeBlock[1].trim();
+          }
         }
-        if (!yamlContent.includes("title:") || !yamlContent.includes("url:")) {
-          throw new Error("\u751F\u6210\u7684YAML\u5185\u5BB9\u7F3A\u5C11\u5FC5\u9700\u5B57\u6BB5\uFF08title\u6216url\uFF09");
-        }
-        return yamlContent;
-      } else if (response.status === 401) {
-        throw new Error("AI API\u5BC6\u94A5\u65E0\u6548\u6216\u5DF2\u8FC7\u671F");
-      } else if (response.status === 429) {
-        throw new Error("AI API\u8BF7\u6C42\u8FC7\u4E8E\u9891\u7E41\uFF0C\u8BF7\u7A0D\u540E\u518D\u8BD5");
-      } else if (response.status === 400) {
-        throw new Error("AI API\u8BF7\u6C42\u53C2\u6570\u9519\u8BEF\uFF0C\u8BF7\u68C0\u67E5\u6A21\u578B\u540D\u79F0\u662F\u5426\u6B63\u786E");
-      } else if (response.status >= 500) {
-        throw new Error("AI\u670D\u52A1\u6682\u65F6\u4E0D\u53EF\u7528\uFF0C\u8BF7\u7A0D\u540E\u518D\u8BD5");
-      } else {
-        throw new Error(`AI API\u8FD4\u56DE\u9519\u8BEF\uFF0C\u72B6\u6001\u7801: ${response.status}`);
       }
+      const parsedYaml = (0, import_obsidian4.parseYaml)(cleanYaml);
+      if (!parsedYaml.title || !parsedYaml.url) {
+        throw new Error("\u4E66\u7B7E\u4FE1\u606F\u4E2D\u7F3A\u5C11\u6807\u9898\u6216URL");
+      }
+      return {
+        created: new Date().toISOString(),
+        title: parsedYaml.title,
+        url: parsedYaml.url,
+        description: parsedYaml.description || "",
+        tags: parsedYaml.tags || [],
+        screenshotFileName: `${parsedYaml.title}.png`,
+        bookmarkNote: parsedYaml.bookmarkNote || ""
+      };
     } catch (error) {
-      console.error("AI\u751F\u6210\u4E66\u7B7E\u4FE1\u606F\u5931\u8D25:", error);
-      if (error instanceof Error) {
-        if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
-          throw new Error("\u7F51\u7EDC\u8FDE\u63A5\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5\u7F51\u7EDC\u8BBE\u7F6E");
-        }
-        throw new Error(`AI\u751F\u6210\u4E66\u7B7E\u4FE1\u606F\u5931\u8D25: ${error.message}`);
-      } else {
-        throw new Error("AI\u751F\u6210\u4E66\u7B7E\u4FE1\u606F\u5931\u8D25: \u672A\u77E5\u9519\u8BEF");
-      }
+      console.error("\u89E3\u6790YAML\u5185\u5BB9\u5931\u8D25:", error);
+      throw new Error("\u89E3\u6790\u751F\u6210\u7684\u4E66\u7B7E\u4FE1\u606F\u5931\u8D25");
     }
   }
   /**
-   * 完整的AI书签生成流程
-   * @param {string} url - 网页URL
-   * @returns {Promise<string>} 生成的YAML内容
-   * @throws {Error} 当整个流程中的任何步骤失败时抛出错误
+   * 创建书签笔记
+   * @param {NoteContentData} noteData - 笔记数据
+   * @returns {Promise<void>}
+   * @private
    */
-  async generateBookmarkFromUrl(url) {
+  async createBookmarkNote(noteData) {
     try {
-      const webContent = await this.extractWebContent(url);
-      const searchInfo = await this.searchWebInfo(url);
-      const yamlContent = await this.generateBookmarkYaml(url, webContent, searchInfo);
-      return yamlContent;
+      const content = this.fileManager.buildNoteContent(noteData);
+      const file = await this.fileManager.createNoteFile(noteData.title, content);
+      this.createdNotes.push(file.path);
     } catch (error) {
-      console.error("AI\u4E66\u7B7E\u751F\u6210\u6D41\u7A0B\u5931\u8D25:", error);
-      if (error instanceof Error) {
-        throw new Error(`AI\u4E66\u7B7E\u751F\u6210\u5931\u8D25: ${error.message}`);
-      } else {
-        throw new Error("AI\u4E66\u7B7E\u751F\u6210\u5931\u8D25: \u672A\u77E5\u9519\u8BEF");
-      }
+      console.error("\u521B\u5EFA\u7B14\u8BB0\u5931\u8D25:", error);
+      throw new Error(`\u521B\u5EFA\u4E66\u7B7E\u7B14\u8BB0\u5931\u8D25: ${error instanceof Error ? error.message : "\u672A\u77E5\u9519\u8BEF"}`);
     }
   }
 };
+var BookmarkWorkflow = _BookmarkWorkflow;
+/** 全局静态锁，跨实例共享 */
+BookmarkWorkflow.isWorkflowRunning = false;
+/** 当前运行的工作流实例ID */
+BookmarkWorkflow.runningInstanceId = null;
+/** 全局取消请求标志 */
+BookmarkWorkflow.isCancellationRequested = false;
+/** 当前请求取消的实例ID */
+BookmarkWorkflow.cancellingInstanceId = null;
 
 // src/modal.ts
 var BookmarkModal = class extends import_obsidian5.Modal {
@@ -1318,63 +1055,299 @@ var BookmarkModal = class extends import_obsidian5.Modal {
    */
   constructor(app, plugin) {
     super(app);
-    /** YAML输入文本域 */
-    this.yamlTextarea = null;
-    /** 是否为进度模式 */
-    this.isProgressMode = false;
-    /** 进度容器元素 */
-    this.progressContainer = null;
-    /** 步骤元素映射 */
-    this.stepElements = /* @__PURE__ */ new Map();
-    /** 步骤列表 */
-    this.steps = [];
-    /** 原始内容容器 */
-    this.originalContent = null;
-    /** 进度更新定时器 */
-    this.progressUpdateInterval = null;
+    this.modalType = "input";
+    /** 当前步骤列表 */
+    this.currentSteps = [];
+    /** 步骤元素映射，用于快速访问和更新步骤DOM */
+    this.stepEls = /* @__PURE__ */ new Map();
+    /** 当前运行的进度定时器ID */
+    this.currentProgressTimer = null;
+    /** 当前正在更新进度的步骤名称 */
+    this.currentProcessingStep = null;
+    /** waitlist状态更新监听器 */
+    this.waitlistUpdateListener = null;
+    /** 取消按钮元素 */
+    this.cancelButton = null;
+    /** 打开所有笔记按钮元素 */
+    this.openAllButton = null;
+    /** 关闭按钮元素 */
+    this.closeButton = null;
+    /** 是否正在取消 */
+    this.isCancelling = false;
+    /** 成功创建的笔记列表 */
+    this.createdNotes = [];
     this.plugin = plugin;
-    this.yamlCreator = new BookmarkYamlCreator(app, plugin.settings);
+    this.workflow = new BookmarkWorkflow(this.app, this.plugin.settings, this);
   }
   /**
-   * 模态框打开时的初始化
-   * 
-   * @returns {void}
-   */
+  * 模态框打开时的初始化
+  * 
+  * @returns {void}
+  */
   onOpen() {
-    const { contentEl } = this;
-    contentEl.empty();
-    contentEl.createEl("h2", { text: "\u521B\u5EFA\u4E66\u7B7E\u7B14\u8BB0" });
-    this.addCustomStyles(contentEl);
-    this.createYamlInputArea(contentEl);
-    this.createButtonArea(contentEl);
   }
   /**
-   * 添加自定义样式
-   * @private
-   * @param {HTMLElement} contentEl - 内容元素
-   * @returns {void}
+   * 切换到输入模式
+   * @returns {BookmarkModal} 当前实例，用于链式调用
    */
-  addCustomStyles(contentEl) {
-    contentEl.createEl("style", { text: `
-			.bookmark-yaml-input-setting {
-				flex-wrap: wrap;
-			}
-			.bookmark-yaml-input-setting .setting-item-info,
-			.bookmark-yaml-input-setting .setting-item-control,
-			.bookmark-yaml-input-setting .setting-item-control textarea {
-				width: 100%;
-			}
-		`, type: "text/css" });
+  inputMode() {
+    this.modalType = "input";
+    this.contentEl.empty();
+    this.setTitle("\u521B\u5EFA\u4E66\u7B7E\u7B14\u8BB0");
+    this.createStyle();
+    this.createInputArea();
+    this.createButtonArea();
+    return this;
   }
   /**
-   * 创建YAML输入区域
-   * @private
-   * @param {HTMLElement} contentEl - 内容元素
-   * @returns {void}
+   * 切换到进度模式
+   * @param full 是否显示完整进度模式
+   * @returns {BookmarkModal} 当前实例，用于链式调用
    */
-  createYamlInputArea(contentEl) {
-    new import_obsidian5.Setting(contentEl).setClass("bookmark-yaml-input-setting").setName("\u4E66\u7B7E\u4FE1\u606F").setDesc("\u652F\u6301YAML\u683C\u5F0F\u6216\u76F4\u63A5\u8F93\u5165\u7F51\u5740\u3002YAML\u683C\u5F0F\u5C06\u76F4\u63A5\u5904\u7406\uFF0C\u7F51\u5740\u5C06\u4F7F\u7528AI\u81EA\u52A8\u751F\u6210\u4E66\u7B7E\u4FE1\u606F").addTextArea((text) => {
-      this.yamlTextarea = text.inputEl;
+  progressMode(full, title = "\u5904\u7406\u4E2D...") {
+    this.modalType = full ? "progress" : "simple-progress";
+    this.contentEl.empty();
+    this.currentSteps = full ? [...steps.full] : [...steps.simple];
+    this.setTitle(title);
+    this.createStyle();
+    const stepsContainer = this.contentEl.createDiv("bookmark-steps-container");
+    this.stepEls.clear();
+    this.currentSteps.forEach((step) => {
+      const stepEl = stepsContainer.createDiv("bookmark-step");
+      stepEl.addClass("step-pending");
+      const stepTitle = stepEl.createDiv("step-title");
+      stepTitle.textContent = step.title;
+      const stepProgress = stepEl.createDiv("step-progress");
+      this.stepEls.set(step.name, {
+        stepEl,
+        stepTitle,
+        stepProgress,
+        estimatedTime: step.estimatedTime || 10
+      });
+    });
+    const buttonContainer = this.contentEl.createDiv("modal-button-container");
+    this.cancelButton = buttonContainer.createEl("button", {
+      text: "\u53D6\u6D88",
+      cls: "mod-muted"
+    });
+    this.cancelButton.addEventListener("click", () => this.handleCancel());
+    this.openAllButton = buttonContainer.createEl("button", {
+      text: "\u6253\u5F00\u6240\u6709\u7B14\u8BB0",
+      cls: "mod-cta",
+      attr: {
+        style: "display: none; margin-right: auto;"
+      }
+    });
+    this.openAllButton.addEventListener("click", () => this.openAllNotes());
+    this.closeButton = buttonContainer.createEl("button", {
+      text: "\u5173\u95ED",
+      cls: "mod-muted",
+      attr: {
+        style: "display: none;"
+      }
+    });
+    this.closeButton.addEventListener("click", () => this.close());
+    this.waitlistUpdateListener = (data) => {
+      if (data.step && data.newStatus) {
+        this.updateStepStatus(data.step, data.newStatus);
+      }
+    };
+    waitlist.subscribe("update", this.waitlistUpdateListener);
+    return this;
+  }
+  /**
+   * 更新步骤状态
+   * @param stepName 步骤名称
+   * @param status 新的状态
+   */
+  updateStepStatus(stepName, status) {
+    const step = this.stepEls.get(stepName);
+    if (!step)
+      return;
+    const { stepEl, stepTitle, stepProgress, estimatedTime } = step;
+    stepEl.removeClass("step-pending");
+    stepEl.removeClass("step-processing");
+    stepEl.removeClass("step-completed");
+    stepEl.removeClass("step-failed");
+    stepEl.addClass(`step-${status}`);
+    if (status === "processing") {
+      if (!stepEl.dataset.startTs)
+        stepEl.dataset.startTs = String(Date.now());
+      this.startProgressTimer(stepName, stepEl, stepProgress, estimatedTime * 1e3);
+    } else {
+      stepProgress.textContent = "";
+      delete stepEl.dataset.startTs;
+      if (this.currentProcessingStep === stepName) {
+        this.stopCurrentProgressTimer();
+      }
+    }
+  }
+  /**
+   * 启动进度定时器
+   * @param stepName 步骤名称
+   * @param stepEl 步骤元素
+   * @param stepProgress 进度百分比元素
+   * @param estimatedMsPerStep 预计每个步骤耗时（毫秒）
+   */
+  startProgressTimer(stepName, stepEl, stepProgress, estimatedMsPerStep) {
+    this.stopCurrentProgressTimer();
+    this.currentProcessingStep = stepName;
+    this.currentProgressTimer = window.setInterval(() => {
+      try {
+        const startTime = stepEl.dataset.startTs ? Number(stepEl.dataset.startTs) : Date.now();
+        const elapsed = Date.now() - startTime;
+        const percent = Math.min(99, Math.round(elapsed / estimatedMsPerStep * 100));
+        stepProgress.textContent = `${percent}%`;
+        if (percent >= 99) {
+          this.stopCurrentProgressTimer();
+        }
+      } catch (error) {
+        console.error(`\u6B65\u9AA4 ${stepName} \u8FDB\u5EA6\u66F4\u65B0\u5931\u8D25:`, error);
+        this.stopCurrentProgressTimer();
+      }
+    }, 200);
+  }
+  /**
+   * 停止当前进度定时器
+   */
+  stopCurrentProgressTimer() {
+    if (this.currentProgressTimer !== null) {
+      window.clearInterval(this.currentProgressTimer);
+      this.currentProgressTimer = null;
+      this.currentProcessingStep = null;
+    }
+  }
+  createStyle() {
+    const styleEl = this.contentEl.createEl("style");
+    if (this.modalType === "input") {
+      styleEl.textContent = `
+            .bookmark-input-setting {
+                flex-direction: column;
+                align-items: normal;
+            }`;
+    }
+    if (this.modalType === "progress" || this.modalType === "simple-progress") {
+      styleEl.textContent = `
+                /* \u6B65\u9AA4\u5BB9\u5668\u6837\u5F0F */
+                .bookmark-steps-container {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    width: 100%;
+                    padding: 10px 0;
+                }
+                
+                /* \u5355\u4E2A\u6B65\u9AA4\u6837\u5F0F */
+                .bookmark-step {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 4px;
+                    padding: 12px;
+                    border-radius: 6px;
+                    border: 1px solid var(--background-modifier-border);
+                    transition: all 0.3s ease;
+                }
+                
+                /* \u6B65\u9AA4\u6807\u9898\u6837\u5F0F */
+                .step-title {
+                    font-weight: 600;
+                    font-size: 14px;
+                    color: var(--text-normal);
+                    flex: 1;
+                }
+                
+                /* \u6B65\u9AA4\u63CF\u8FF0\u6837\u5F0F */
+                .step-desc {
+                    font-size: 12px;
+                    color: var(--text-muted);
+                }
+                
+                /* \u6B65\u9AA4\u8FDB\u5EA6\u6837\u5F0F */
+                .step-progress {
+                    color: var(--text-faint);
+                    margin-top: 2px;
+                    text-align: right;
+                    min-width: 40px;
+                }
+                
+                /* \u5F85\u5904\u7406\u72B6\u6001\u6837\u5F0F */
+                .step-pending {
+                    background-color: var(--background-secondary);
+                    border-color: var(--background-modifier-border);
+                }
+                
+                /* \u5904\u7406\u4E2D\u72B6\u6001\u6837\u5F0F */
+                .step-processing {
+                    background-color: rgba(37, 99, 235, 0.1);
+                    border-color: rgba(37, 99, 235, 0.3);
+                }
+                .step-processing::before {
+                    content: '';
+                    display: inline-block;
+                    width: 16px;
+                    height: 16px;
+                    margin-right: 8px;
+                    border: 2px solid var(--interactive-accent);
+                    border-top: 2px solid transparent;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                }
+                
+                /* \u5DF2\u5B8C\u6210\u72B6\u6001\u6837\u5F0F */
+                .step-completed {
+                    background-color: rgba(16, 185, 129, 0.1);
+                    border-color: rgba(16, 185, 129, 0.3);
+                }
+                .step-completed::before {
+                    content: '\u2713';
+                    display: inline-block;
+                    width: 16px;
+                    height: 16px;
+                    margin-right: 8px;
+                    color: rgb(16, 185, 129);
+                    font-weight: bold;
+                }
+                
+                /* \u5931\u8D25\u72B6\u6001\u6837\u5F0F */
+                .step-failed {
+                    background-color: rgba(239, 68, 68, 0.1);
+                    border-color: rgba(239, 68, 68, 0.3);
+                }
+                .step-failed::before {
+                    content: '\u2717';
+                    display: inline-block;
+                    width: 16px;
+                    height: 16px;
+                    margin-right: 8px;
+                    color: rgb(239, 68, 68);
+                    font-weight: bold;
+                }
+                
+                /* \u65CB\u8F6C\u52A8\u753B */
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                
+                /* \u6B65\u9AA4\u6807\u9898\u548C\u63CF\u8FF0\u5728\u72B6\u6001\u6837\u5F0F\u4E2D\u7684\u8C03\u6574 */
+                .step-processing .step-title,
+                .step-completed .step-title,
+                .step-failed .step-title {
+                    display: flex;
+                    align-items: center;
+                }
+            `;
+    }
+  }
+  /**
+  * 创建YAML输入区域
+  * @private
+  * @returns {void}
+  */
+  createInputArea() {
+    new import_obsidian5.Setting(this.contentEl).setClass("bookmark-input-setting").setName("\u4E66\u7B7E\u4FE1\u606F").setDesc("\u652F\u6301 YAML \u683C\u5F0F\u6216\u76F4\u63A5\u8F93\u5165\u7F51\u5740\u3002YAML \u683C\u5F0F\u5C06\u76F4\u63A5\u5904\u7406\uFF0C\u7F51\u5740\u5C06\u4F7F\u7528 AI \u81EA\u52A8\u751F\u6210\u4E66\u7B7E\u4FE1\u606F").addTextArea((text) => {
+      this.mainTextarea = text.inputEl;
       text.setPlaceholder(`\u65B9\u5F0F1 - YAML\u683C\u5F0F\uFF1A
 ---
 created: 
@@ -1388,19 +1361,19 @@ tags:
 
 \u65B9\u5F0F2 - \u76F4\u63A5\u8F93\u5165\u7F51\u5740\uFF1A
 https://example.com/`);
-      this.yamlTextarea.rows = 15;
-      this.yamlTextarea.style.fontFamily = "monospace";
-      this.yamlTextarea.style.fontSize = "14px";
+      this.mainTextarea.rows = 15;
+      this.mainTextarea.style.fontFamily = "monospace";
+      this.mainTextarea.style.fontSize = "14px";
+      this.mainTextarea.style.width = "100%";
     });
   }
   /**
    * 创建按钮区域
    * @private
-   * @param {HTMLElement} contentEl - 内容元素
    * @returns {void}
    */
-  createButtonArea(contentEl) {
-    const buttonContainer = contentEl.createDiv("modal-button-container");
+  createButtonArea() {
+    const buttonContainer = this.contentEl.createDiv("modal-button-container");
     buttonContainer.style.display = "flex";
     buttonContainer.style.gap = "10px";
     buttonContainer.style.marginTop = "20px";
@@ -1408,7 +1381,7 @@ https://example.com/`);
       text: "\u521B\u5EFA\u4E66\u7B7E",
       cls: "mod-cta"
     });
-    createButton.addEventListener("click", () => this.createBookmark());
+    createButton.addEventListener("click", () => this.startWorkflow());
     const cancelButton = buttonContainer.createEl("button", {
       text: "\u53D6\u6D88",
       cls: "mod-muted"
@@ -1416,775 +1389,108 @@ https://example.com/`);
     cancelButton.addEventListener("click", () => this.close());
   }
   /**
-   * 模态框关闭时的清理
-   * 
+   * 启动书签创建工作流
    * @returns {void}
    */
-  onClose() {
-    const { contentEl } = this;
-    contentEl.empty();
-  }
-  /**
-   * 解析YAML内容
-   * @private
-   * @param {string} yamlText - YAML文本内容
-   * @returns {BookmarkYamlData} 解析后的数据对象
-   * @throws {Error} 当YAML解析失败时抛出错误
-   */
-  parseYamlContent(yamlText) {
-    try {
-      const yamlMatch = yamlText.match(/---\s*\n([\s\S]*?)\n---/);
-      if (!yamlMatch) {
-        throw new Error("\u672A\u627E\u5230YAML\u683C\u5F0F\u5185\u5BB9");
-      }
-      const yamlContent = yamlMatch[1];
-      const result = {};
-      const lines = yamlContent.split("\n");
-      let currentKey = "";
-      let currentValue = "";
-      let inTags = false;
-      const tags = [];
-      for (const line of lines) {
-        const trimmedLine = line.trim();
-        if (trimmedLine.startsWith("tags:")) {
-          inTags = true;
-          currentKey = "tags";
-          continue;
-        }
-        if (inTags) {
-          if (trimmedLine.startsWith("- ")) {
-            tags.push(trimmedLine.substring(2).trim());
-          } else if (trimmedLine && !trimmedLine.startsWith("-")) {
-            inTags = false;
-          }
-          continue;
-        }
-        const colonIndex = trimmedLine.indexOf(":");
-        if (colonIndex > 0) {
-          currentKey = trimmedLine.substring(0, colonIndex).trim();
-          currentValue = trimmedLine.substring(colonIndex + 1).trim();
-          if (currentValue) {
-            if (currentKey === "tags") {
-              result.tags = [currentValue];
-            } else {
-              result[currentKey] = currentValue;
-            }
-          }
-        }
-      }
-      if (tags.length > 0) {
-        result.tags = tags;
-      }
-      return result;
-    } catch (error) {
-      throw new Error(`YAML\u89E3\u6790\u5931\u8D25: ${error.message}`);
-    }
-  }
-  /**
-   * 检查输入是否为有效的URL
-   * @private
-   * @param {string} input - 输入文本
-   * @returns {boolean} 是否为URL
-   */
-  isValidUrl(input) {
-    try {
-      new URL(input);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-  /**
-   * 检查输入是否为YAML格式
-   * @private
-   * @param {string} input - 输入文本
-   * @returns {boolean} 是否为YAML格式
-   */
-  isYamlFormat(input) {
-    const yamlMarkerMatch = input.match(/---\s*\n/);
-    if (!yamlMarkerMatch) {
-      return false;
-    }
-    const hasTitle = input.includes("title:");
-    const hasUrl = input.includes("url:");
-    return hasTitle && hasUrl;
-  }
-  /**
-   * 从URL生成YAML内容
-   * @private
-   * @param {string} url - 网页URL
-   * @returns {Promise<string>} 生成的YAML内容
-   * @throws {Error} 当AI生成失败时抛出错误
-   */
-  async generateYamlFromUrl(url) {
-    const aiService = new AiService(this.plugin.settings);
-    return await aiService.generateBookmarkFromUrl(url);
-  }
-  /**
-   * 创建书签
-   * 处理用户点击创建按钮的逻辑
-   * 
-   * @private
-   * @returns {Promise<void>}
-   */
-  async createBookmark() {
-    if (!this.yamlTextarea) {
-      new import_obsidian5.Notice("\u8F93\u5165\u533A\u57DF\u672A\u521D\u59CB\u5316");
+  startWorkflow() {
+    const input = this.mainTextarea.value.trim();
+    if (!input) {
+      new import_obsidian5.Notice("\u8BF7\u8F93\u5165\u7F51\u5740\u6216\u4E66\u7B7E\u4FE1\u606F");
       return;
     }
-    const inputText = this.yamlTextarea.value.trim();
-    if (!inputText) {
-      new import_obsidian5.Notice("\u8BF7\u8F93\u5165\u4E66\u7B7E\u4FE1\u606F");
-      return;
-    }
-    try {
-      if (this.isYamlFormat(inputText)) {
-        await this.processYamlInput(inputText);
-      } else if (this.isValidUrl(inputText)) {
-        await this.processUrlInput(inputText);
-      } else {
-        new import_obsidian5.Notice("\u8BF7\u8F93\u5165\u6709\u6548\u7684YAML\u683C\u5F0F\u6216\u7F51\u5740");
-        return;
-      }
-    } catch (error) {
-      new import_obsidian5.Notice(`\u5904\u7406\u5931\u8D25: ${error.message}`);
-    }
-  }
-  /**
-   * 处理YAML格式输入
-   * @private
-   * @param {string} yamlText - YAML文本
-   * @returns {Promise<void>}
-   * @throws {Error} 当YAML处理失败时抛出错误
-   */
-  async processYamlInput(yamlText) {
-    try {
-      this.switchToProgressMode();
-      this.steps = [
-        { id: "parse", name: "\u89E3\u6790YAML", status: "pending" /* PENDING */ },
-        { id: "validate", name: "\u9A8C\u8BC1\u6570\u636E", status: "pending" /* PENDING */ },
-        { id: "prepare", name: "\u51C6\u5907\u73AF\u5883", status: "pending" /* PENDING */ },
-        { id: "screenshot", name: "\u751F\u6210\u622A\u56FE", status: "pending" /* PENDING */ },
-        { id: "content", name: "\u6784\u5EFA\u5185\u5BB9", status: "pending" /* PENDING */ },
-        { id: "create", name: "\u521B\u5EFA\u6587\u4EF6", status: "pending" /* PENDING */ },
-        { id: "open", name: "\u6253\u5F00\u7B14\u8BB0", status: "pending" /* PENDING */ }
-      ];
-      this.renderProgressSteps();
-      console.log("\u6B65\u9AA41: \u89E3\u6790YAML - \u5F00\u59CB");
-      this.updateProgressStep("parse", "processing" /* PROCESSING */);
-      const parsedData = this.parseYamlContent(yamlText);
-      this.completeProgressStep("parse");
-      console.log("\u6B65\u9AA41: \u89E3\u6790YAML - \u5B8C\u6210");
-      console.log("\u6B65\u9AA42: \u9A8C\u8BC1\u6570\u636E - \u5F00\u59CB");
-      this.updateProgressStep("validate", "processing" /* PROCESSING */);
-      const title = parsedData.title;
-      const url = parsedData.url;
-      if (!title) {
-        throw new Error("YAML\u683C\u5F0F\u9519\u8BEF\uFF1A\u7F3A\u5C11\u6807\u9898");
-      }
-      if (!url) {
-        throw new Error("YAML\u683C\u5F0F\u9519\u8BEF\uFF1A\u7F3A\u5C11\u7F51\u5740");
-      }
-      try {
-        new URL(url);
-      } catch (e) {
-        throw new Error("YAML\u683C\u5F0F\u9519\u8BEF\uFF1A\u65E0\u6548\u7684\u7F51\u5740\u683C\u5F0F");
-      }
-      this.completeProgressStep("validate");
-      console.log("\u6B65\u9AA42: \u9A8C\u8BC1\u6570\u636E - \u5B8C\u6210");
-      await this.processBookmarkCreation(parsedData);
-    } catch (error) {
-      this.failProgressStep("parse", error.message);
-      setTimeout(() => this.close(), 3e3);
-      throw new Error(`YAML\u5904\u7406\u5931\u8D25: ${error.message}`);
-    }
-  }
-  /**
-   * 切换到进度显示模式
-   * @private
-   * @returns {void}
-   */
-  switchToProgressMode() {
-    this.isProgressMode = true;
-    const { contentEl } = this;
-    this.originalContent = contentEl.createDiv();
-    this.originalContent.innerHTML = contentEl.innerHTML;
-    contentEl.empty();
-    contentEl.createEl("h2", { text: "\u521B\u5EFA\u4E66\u7B7E\u7B14\u8BB0 - \u5904\u7406\u4E2D" });
-    this.addProgressStyles(contentEl);
-    this.progressContainer = contentEl.createDiv("progress-steps-container");
-  }
-  /**
-   * 添加进度显示样式
-   * @private
-   * @param {HTMLElement} contentEl - 内容元素
-   * @returns {void}
-   */
-  addProgressStyles(contentEl) {
-    contentEl.createEl("style", { text: `
-			.progress-steps-container {
-				display: flex;
-				flex-direction: column;
-				gap: 8px;
-				margin-top: 20px;
-			}
-			
-			.progress-step {
-				display: flex;
-				align-items: center;
-				padding: 8px 12px;
-				border-radius: 4px;
-				transition: all 0.3s ease;
-			}
-			
-			/* \u72B6\u6001\u6587\u5B57\u989C\u8272\u53D8\u5316 */
-			.progress-step.processing .step-name {
-				color: #007acc; /* \u84DD\u8272 */
-			}
-			
-			.progress-step.completed .step-name {
-				color: #28a745; /* \u7EFF\u8272 */
-			}
-			
-			.progress-step.failed .step-name {
-				color: #dc3545; /* \u7EA2\u8272 */
-			}
-			
-			.progress-step.pending .step-name {
-				color: #6c757d; /* \u6D45\u7070\u8272 */
-			}
-			
-			.step-icon {
-				width: 24px;
-				height: 24px;
-				margin-right: 12px;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				flex-shrink: 0;
-			}
-			
-			.step-icon svg {
-				width: 16px;
-				height: 16px;
-			}
-			
-			.step-content {
-				flex: 1;
-				display: flex;
-				flex-direction: column;
-				gap: 4px;
-			}
-			
-			.step-name {
-				font-weight: 500;
-				color: var(--text-normal);
-			}
-			
-			.step-description {
-				font-size: 0.9em;
-				color: var(--text-muted);
-			}
-			
-			.step-progress {
-				display: flex;
-				align-items: center;
-				gap: 8px;
-				margin-left: auto;
-				flex-shrink: 0;
-			}
-			
-			.progress-percentage {
-				font-size: 0.9em;
-				color: var(--text-muted);
-				min-width: 40px;
-				text-align: right;
-			}
-			
-			/* \u52A0\u8F7D\u52A8\u753B */
-			.loading-spinner {
-				width: 16px;
-				height: 16px;
-				border: 2px solid var(--background-modifier-border);
-				border-top: 2px solid var(--interactive-accent);
-				border-radius: 50%;
-				animation: spin 1s linear infinite;
-			}
-			
-			@keyframes spin {
-				0% { transform: rotate(0deg); }
-				100% { transform: rotate(360deg); }
-			}
-			
-			/* \u5B8C\u6210\u56FE\u6807 */
-			.check-icon {
-				color: var(--interactive-success);
-			}
-			
-			/* \u5931\u8D25\u56FE\u6807 */
-			.error-icon {
-				color: var(--interactive-failure);
-			}
-		`, type: "text/css" });
-  }
-  /**
-   * 渲染进度步骤
-   * @private
-   * @returns {void}
-   */
-  renderProgressSteps() {
-    if (!this.progressContainer)
-      return;
-    this.progressContainer.empty();
-    this.stepElements.clear();
-    this.steps.forEach((step) => {
-      const stepElement = this.createProgressStepElement(step);
-      this.progressContainer.appendChild(stepElement);
-      this.stepElements.set(step.id, stepElement);
-    });
-  }
-  /**
-   * 创建进度步骤元素
-   * @private
-   * @param {ProgressStep} step - 步骤数据
-   * @returns {HTMLElement} 步骤元素
-   */
-  createProgressStepElement(step) {
-    const stepDiv = document.createElement("div");
-    stepDiv.className = `progress-step ${step.status}`;
-    stepDiv.id = `step-${step.id}`;
-    const iconDiv = stepDiv.createDiv("step-icon");
-    this.updateProgressStepIcon(iconDiv, step.status);
-    const contentDiv = stepDiv.createDiv("step-content");
-    contentDiv.createDiv("step-name").setText(step.name);
-    if (step.description) {
-      contentDiv.createDiv("step-description").setText(step.description);
-    }
-    const progressDiv = stepDiv.createDiv("step-progress");
-    if (step.status === "processing" /* PROCESSING */) {
-      progressDiv.createDiv("loading-spinner");
-    }
-    const progressPercentage = this.calculateProgressForModal(step);
-    progressDiv.createDiv("progress-percentage").setText(`${progressPercentage}%`);
-    return stepDiv;
-  }
-  /**
-   * 更新进度步骤图标
-   * @private
-   * @param {HTMLElement} iconDiv - 图标容器
-   * @param {ProgressStatus} status - 状态
-   * @returns {void}
-   */
-  updateProgressStepIcon(iconDiv, status) {
-    iconDiv.empty();
-    switch (status) {
-      case "pending" /* PENDING */:
-        iconDiv.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg>';
-        break;
-      case "processing" /* PROCESSING */:
-        iconDiv.innerHTML = '<div class="loading-spinner"></div>';
-        break;
-      case "completed" /* COMPLETED */:
-        iconDiv.innerHTML = '<svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg>';
-        break;
-      case "failed" /* FAILED */:
-        iconDiv.innerHTML = '<svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
-        break;
-    }
-  }
-  /**
-   * 更新进度步骤
-   * @private
-   * @param {string} stepId - 步骤ID
-   * @param {ProgressStatus} status - 状态
-   * @param {number} [progress] - 进度百分比
-   * @param {string} [description] - 描述
-   * @returns {void}
-   */
-  updateProgressStep(stepId, status, progress, description) {
-    const step = this.steps.find((s) => s.id === stepId);
-    if (!step)
-      return;
-    step.status = status;
-    if (progress !== void 0)
-      step.progress = progress;
-    if (description !== void 0)
-      step.description = description;
-    if (status === "processing" /* PROCESSING */ && !step.startTime) {
-      step.startTime = Date.now();
-      this.startProgressUpdate();
-    } else if (status !== "processing" /* PROCESSING */ && step.startTime) {
-      this.stopProgressUpdate();
-    }
-    const stepElement = this.stepElements.get(stepId);
-    if (!stepElement)
-      return;
-    stepElement.className = `progress-step ${status}`;
-    const iconDiv = stepElement.querySelector(".step-icon");
-    if (iconDiv) {
-      this.updateProgressStepIcon(iconDiv, status);
-    }
-    this.updateStepProgress(stepElement, step);
-    if (description !== void 0) {
-      const descriptionDiv = stepElement.querySelector(".step-description");
-      if (descriptionDiv) {
-        descriptionDiv.textContent = description;
-      } else {
-        const contentDiv = stepElement.querySelector(".step-content");
-        if (contentDiv) {
-          contentDiv.createDiv("step-description").setText(description);
-        }
-      }
-    }
-  }
-  /**
-   * 完成进度步骤
-   * @private
-   * @param {string} stepId - 步骤ID
-   * @param {string} [description] - 描述
-   * @returns {void}
-   */
-  completeProgressStep(stepId, description) {
-    this.updateProgressStep(stepId, "completed" /* COMPLETED */, 100, description);
-  }
-  /**
-   * 失败进度步骤
-   * @private
-   * @param {string} stepId - 步骤ID
-   * @param {string} error - 错误信息
-   * @returns {void}
-   */
-  failProgressStep(stepId, error) {
-    this.updateProgressStep(stepId, "failed" /* FAILED */, void 0, error);
-  }
-  /**
-   * 处理书签创建的主要流程（简化其他步骤的百分比显示）
-   * @private
-   * @param {BookmarkYamlData} parsedData - 解析后的书签数据
-   * @returns {Promise<void>}
-   * @throws {Error} 当书签创建失败时抛出错误
-   */
-  async processBookmarkCreation(parsedData) {
-    try {
-      if (!parsedData.title || !parsedData.url) {
-        throw new Error("\u7F3A\u5C11\u5FC5\u9700\u7684\u6807\u9898\u6216URL");
-      }
-      console.log("\u6B65\u9AA43: \u51C6\u5907\u73AF\u5883 - \u5F00\u59CB");
-      this.updateProgressStep("prepare", "processing" /* PROCESSING */);
-      await this.app.vault.createFolder(this.plugin.settings.bookmarkFolder).catch(() => {
-      });
-      await this.app.vault.createFolder(this.plugin.settings.attachmentFolder).catch(() => {
-      });
-      this.completeProgressStep("prepare");
-      console.log("\u6B65\u9AA43: \u51C6\u5907\u73AF\u5883 - \u5B8C\u6210");
-      console.log("\u6B65\u9AA44: \u751F\u6210\u622A\u56FE - \u5F00\u59CB");
-      this.updateProgressStep("screenshot", "processing" /* PROCESSING */);
-      const screenshotFileName = await this.generateScreenshot(parsedData);
-      this.completeProgressStep("screenshot");
-      console.log("\u6B65\u9AA44: \u751F\u6210\u622A\u56FE - \u5B8C\u6210");
-      console.log("\u6B65\u9AA45: \u6784\u5EFA\u5185\u5BB9 - \u5F00\u59CB");
-      this.updateProgressStep("content", "processing" /* PROCESSING */);
-      const noteContent = this.buildNoteContent({
-        created: parsedData.created || new Date().toISOString().slice(0, 19).replace("T", " "),
-        title: parsedData.title,
-        url: parsedData.url,
-        description: parsedData.description || "",
-        tags: parsedData.tags || [],
-        screenshotFileName
-      });
-      this.completeProgressStep("content");
-      console.log("\u6B65\u9AA45: \u6784\u5EFA\u5185\u5BB9 - \u5B8C\u6210");
-      console.log("\u6B65\u9AA46: \u521B\u5EFA\u6587\u4EF6 - \u5F00\u59CB");
-      this.updateProgressStep("create", "processing" /* PROCESSING */);
-      const safeTitle = this.sanitizeFileName(parsedData.title);
-      const fileName = `${safeTitle}.md`;
-      const filePath = `${this.plugin.settings.bookmarkFolder}/${fileName}`;
-      const finalFilePath = await this.ensureFileCanBeCreated(filePath);
-      const file = await this.app.vault.create(finalFilePath, noteContent);
-      this.completeProgressStep("create");
-      console.log("\u6B65\u9AA46: \u521B\u5EFA\u6587\u4EF6 - \u5B8C\u6210");
-      console.log("\u6B65\u9AA47: \u6253\u5F00\u7B14\u8BB0 - \u5F00\u59CB");
-      this.updateProgressStep("open", "processing" /* PROCESSING */);
-      await this.app.workspace.getLeaf().openFile(file);
-      this.completeProgressStep("open");
-      console.log("\u6B65\u9AA47: \u6253\u5F00\u7B14\u8BB0 - \u5B8C\u6210");
-      setTimeout(() => {
-        this.close();
-      }, 1500);
-    } catch (error) {
-      console.error("\u4E66\u7B7E\u521B\u5EFA\u5931\u8D25:", error);
-      this.failProgressStep("prepare", error.message);
-      setTimeout(() => this.close(), 5e3);
-      throw error;
-    }
-  }
-  /**
-   * 生成截图（实际完成后直接返回，不显示进度）
-   * @private
-   * @param {BookmarkYamlData} parsedData - 解析后的书签数据
-   * @returns {Promise<string>} 截图文件名
-   * @throws {Error} 当截图生成失败时抛出错误
-   */
-  async generateScreenshot(parsedData) {
-    const safeTitle = this.sanitizeFileName(parsedData.title);
-    const screenshotFileName = `${safeTitle}.png`;
-    const screenshotPath = `${this.plugin.settings.attachmentFolder}/${screenshotFileName}`;
-    const maxRetries = 3;
-    let retryCount = 0;
-    while (retryCount < maxRetries) {
-      try {
-        await this.downloadScreenshot(
-          `https://image.thum.io/get/wait/60/viewportWidth/1600/width/1440/crop/900/png/noanimate/${parsedData.url}`,
-          screenshotPath
-        );
-        return screenshotFileName;
-      } catch (error) {
-        retryCount++;
-        console.error(`\u622A\u56FE\u4E0B\u8F7D\u5931\u8D25 (\u5C1D\u8BD5 ${retryCount}/${maxRetries}):`, error);
-        if (retryCount < maxRetries) {
-          await new Promise((resolve) => setTimeout(resolve, 1e4));
-        } else {
-          throw new Error(`\u622A\u56FE\u4E0B\u8F7D\u5931\u8D25\uFF0C\u5DF2\u91CD\u8BD5${maxRetries - 1}\u6B21: ${error.message}`);
-        }
-      }
-    }
-    return screenshotFileName;
-  }
-  /**
-   * 处理URL格式输入
-   * @private
-   * @param {string} url - 网页URL
-   * @returns {Promise<void>}
-   * @throws {Error} 当URL处理失败时抛出错误
-   */
-  async processUrlInput(url) {
-    try {
-      try {
-        new URL(url);
-      } catch (e) {
-        throw new Error("\u65E0\u6548\u7684\u7F51\u5740\u683C\u5F0F");
-      }
-      if (!this.plugin.settings.jinaApiKey) {
-        throw new Error("Jina AI API\u5BC6\u94A5\u672A\u8BBE\u7F6E\uFF0C\u8BF7\u5728\u8BBE\u7F6E\u4E2D\u914D\u7F6E");
-      }
-      if (!this.plugin.settings.aiApiKey) {
-        throw new Error("AI API\u5BC6\u94A5\u672A\u8BBE\u7F6E\uFF0C\u8BF7\u5728\u8BBE\u7F6E\u4E2D\u914D\u7F6E");
-      }
-      this.switchToProgressMode();
-      this.steps = [
-        { id: "extract", name: "\u8BFB\u53D6\u7F51\u9875\u5185\u5BB9", status: "pending" /* PENDING */, estimatedTime: 30 },
-        // 抓取网页：30秒
-        { id: "search", name: "\u641C\u7D22\u7F51\u7AD9\u76F8\u5173\u4FE1\u606F", status: "pending" /* PENDING */, estimatedTime: 60 },
-        // 搜索信息：60秒
-        { id: "generate", name: "\u4F7F\u7528AI\u751F\u6210\u5B8C\u6574\u7684\u4E66\u7B7EYAML\u4FE1\u606F", status: "pending" /* PENDING */ },
-        { id: "parse", name: "\u89E3\u6790\u6570\u636E", status: "pending" /* PENDING */ },
-        { id: "screenshot", name: "\u751F\u6210\u622A\u56FE", status: "pending" /* PENDING */, estimatedTime: 60 },
-        // 生成截图：60秒
-        { id: "content", name: "\u6784\u5EFA\u5185\u5BB9", status: "pending" /* PENDING */ },
-        { id: "create", name: "\u521B\u5EFA\u6587\u4EF6", status: "pending" /* PENDING */ },
-        { id: "open", name: "\u6253\u5F00\u7B14\u8BB0", status: "pending" /* PENDING */ }
-      ];
-      this.renderProgressSteps();
-      const aiService = new AiService(this.plugin.settings);
-      console.log("\u6B65\u9AA41: \u8BFB\u53D6\u7F51\u9875\u5185\u5BB9 - \u5F00\u59CB");
-      this.updateProgressStep("extract", "processing" /* PROCESSING */);
-      const webContent = await aiService.extractWebContent(url);
-      this.completeProgressStep("extract");
-      console.log("\u6B65\u9AA41: \u8BFB\u53D6\u7F51\u9875\u5185\u5BB9 - \u5B8C\u6210");
-      console.log("\u6B65\u9AA42: \u641C\u7D22\u7F51\u7AD9\u76F8\u5173\u4FE1\u606F - \u5F00\u59CB");
-      this.updateProgressStep("search", "processing" /* PROCESSING */);
-      const searchInfo = await aiService.searchWebInfo(url);
-      this.completeProgressStep("search");
-      console.log("\u6B65\u9AA42: \u641C\u7D22\u7F51\u7AD9\u76F8\u5173\u4FE1\u606F - \u5B8C\u6210");
-      console.log("\u6B65\u9AA43: \u4F7F\u7528AI\u751F\u6210\u5B8C\u6574\u7684\u4E66\u7B7EYAML\u4FE1\u606F - \u5F00\u59CB");
-      this.updateProgressStep("generate", "processing" /* PROCESSING */);
-      const yamlContent = await aiService.generateBookmarkYaml(url, webContent, searchInfo);
-      this.completeProgressStep("generate");
-      console.log("\u6B65\u9AA43: \u4F7F\u7528AI\u751F\u6210\u5B8C\u6574\u7684\u4E66\u7B7EYAML\u4FE1\u606F - \u5B8C\u6210");
-      console.log("\u6B65\u9AA44: \u89E3\u6790\u6570\u636E - \u5F00\u59CB");
-      this.updateProgressStep("parse", "processing" /* PROCESSING */);
-      const parsedData = this.parseYamlContent(yamlContent);
-      this.completeProgressStep("parse");
-      console.log("\u6B65\u9AA44: \u89E3\u6790\u6570\u636E - \u5B8C\u6210");
-      await this.processBookmarkCreation(parsedData);
-    } catch (error) {
-      this.failProgressStep("extract", error.message);
-      setTimeout(() => this.close(), 5e3);
-      console.error("URL\u5904\u7406\u5931\u8D25:", error);
-      throw new Error(`URL\u5904\u7406\u5931\u8D25: ${error.message}`);
-    }
-  }
-  /**
-   * 清理文件名，移除非法字符
-   * @private
-   * @param {string} fileName - 原始文件名
-   * @returns {string} 清理后的文件名
-   */
-  sanitizeFileName(fileName) {
-    return fileName.replace(/[<>:\"/\\|?*]/g, "_").replace(/\s+/g, " ").trim();
-  }
-  /**
-   * 下载截图
-   * @private
-   * @param {string} url - 截图URL
-   * @param {string} filePath - 保存的文件路径
-   * @returns {Promise<void>}
-   * @throws {Error} 当下载失败时抛出错误
-   */
-  async downloadScreenshot(url, filePath) {
-    console.log("Downloading screenshot from:", url);
-    try {
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
-      });
-      if (response.ok) {
-        const arrayBuffer = await response.arrayBuffer();
-        await this.app.vault.createBinary(filePath, arrayBuffer);
-        console.log("Screenshot downloaded successfully");
-      } else {
-        throw new Error(`\u622A\u56FE\u4E0B\u8F7D\u5931\u8D25\uFF0C\u72B6\u6001\u7801: ${response.status}`);
-      }
-    } catch (error) {
-      console.error("\u4E0B\u8F7D\u622A\u56FE\u5931\u8D25:", error);
-      if (error instanceof Error) {
-        throw new Error(`\u65E0\u6CD5\u4E0B\u8F7D\u7F51\u7AD9\u622A\u56FE: ${error.message}`);
-      } else {
-        throw new Error("\u65E0\u6CD5\u4E0B\u8F7D\u7F51\u7AD9\u622A\u56FE: \u672A\u77E5\u9519\u8BEF");
-      }
-    }
-  }
-  /**
-   * 确保文件可以被创建（处理同名文件存在的情况）
-   * @private
-   * @param {string} filePath - 原始文件路径
-   * @returns {Promise<string>} 可用的文件路径
-   */
-  async ensureFileCanBeCreated(filePath) {
-    const existingFile = this.app.vault.getAbstractFileByPath(filePath);
-    if (!existingFile) {
-      return filePath;
-    }
-    const now = new Date();
-    const timestamp = now.getTime().toString().slice(-6);
-    const pathParts = filePath.split("/");
-    const fileName = pathParts[pathParts.length - 1];
-    const folderPath = pathParts.slice(0, -1).join("/");
-    const nameParts = fileName.split(".");
-    const extension = nameParts.length > 1 ? nameParts.pop() : "";
-    const baseName = nameParts.join(".");
-    const newFileName = `${baseName}_${timestamp}.${extension}`;
-    const newFilePath = folderPath ? `${folderPath}/${newFileName}` : newFileName;
-    return newFilePath;
-  }
-  /**
-   * 计算进度百分比（用于模态框）
-   * @private
-   * @param {ProgressStep} step - 步骤数据
-   * @returns {number} 进度百分比
-   */
-  calculateProgressForModal(step) {
-    if (step.progress !== void 0) {
-      return step.progress;
-    }
-    if (step.estimatedTime && step.startTime) {
-      const elapsed = (Date.now() - step.startTime) / 1e3;
-      const progress = Math.min(Math.round(elapsed / step.estimatedTime * 100), 99);
-      return progress;
-    }
-    return 0;
-  }
-  /**
-   * 开始实时更新进度
-   * @private
-   * @returns {void}
-   */
-  startProgressUpdate() {
-    this.stopProgressUpdate();
-    this.progressUpdateInterval = window.setInterval(() => {
-      this.updateProcessingStepsProgress();
-    }, 500);
-  }
-  /**
-   * 停止实时更新进度
-   * @private
-   * @returns {void}
-   */
-  stopProgressUpdate() {
-    if (this.progressUpdateInterval) {
-      window.clearInterval(this.progressUpdateInterval);
-      this.progressUpdateInterval = null;
-    }
-  }
-  /**
-   * 更新所有处理中步骤的进度
-   * @private
-   * @returns {void}
-   */
-  updateProcessingStepsProgress() {
-    this.steps.forEach((step) => {
-      if (step.status === "processing" /* PROCESSING */) {
-        const stepElement = this.stepElements.get(step.id);
-        if (stepElement) {
-          this.updateStepProgress(stepElement, step);
-        }
-      }
-    });
-  }
-  /**
-   * 更新步骤进度显示
-   * @private
-   * @param {HTMLElement} stepElement - 步骤元素
-   * @param {ProgressStep} step - 步骤数据
-   * @returns {void}
-   */
-  updateStepProgress(stepElement, step) {
-    let progressDiv = stepElement.querySelector(".step-progress");
-    if (!progressDiv) {
-      progressDiv = stepElement.createDiv("step-progress");
-    }
-    progressDiv.empty();
-    if (step.status === "processing" /* PROCESSING */) {
-      progressDiv.createDiv("loading-spinner");
-      const progress = this.calculateProgressForModal(step);
-      progressDiv.createDiv("progress-percentage").setText(`${progress}%`);
-    } else if (step.status === "completed" /* COMPLETED */) {
-      progressDiv.createDiv("progress-percentage").setText("100%");
-    } else if (step.status === "failed" /* FAILED */) {
-      const progress = step.progress || 0;
-      progressDiv.createDiv("progress-percentage").setText(`${progress}%`);
+    if (/^(-{3,}|`{3,}\w*)$/m.test(input)) {
+      this.workflow.startYAMLWorkflow(input.trim());
     } else {
-      progressDiv.createDiv("progress-percentage").setText("0%");
+      const lines = input.split("\n").map((l) => l.trim()).filter(Boolean);
+      for (const line of lines) {
+        try {
+          new URL(line);
+        } catch (e) {
+          new import_obsidian5.Notice(`\u65E0\u6548\u7F51\u5740\uFF1A${line}`);
+          return;
+        }
+      }
+      lines.forEach((line) => {
+        waitlist.add(line);
+      });
+      this.workflow.startURLWorkflow();
     }
   }
   /**
-   * 构建笔记内容
-   * @private
-   * @param {any} data - 笔记数据
-   * @returns {string} 生成的笔记内容
+  * 模态框关闭时的清理
+  * 
+  * @returns {void}
+  */
+  onClose() {
+    if (this.waitlistUpdateListener) {
+      waitlist.unsubscribe("update", this.waitlistUpdateListener);
+      this.waitlistUpdateListener = null;
+    }
+    this.stopCurrentProgressTimer();
+    this.contentEl.empty();
+    this.stepEls.clear();
+    this.createdNotes = [];
+  }
+  /**
+   * 设置成功创建的笔记列表
+   * @param {string[]} notes - 笔记标题列表
+   * @returns {void}
    */
-  buildNoteContent(data) {
-    const processedTags = data.tags.map((tag) => tag.replace(/\s+/g, "_"));
-    const tagsContent = processedTags.length > 0 ? processedTags.map((tag) => `  - ${tag}`).join("\n") : "";
-    const screenshotLink = `screenshot:: ![\u7F51\u7AD9\u622A\u56FE](${this.plugin.settings.attachmentFolder}/${encodeURIComponent(data.screenshotFileName)})`;
-    return `---
-created: ${data.created}
-title: "${data.title}"
-url: "${data.url}"
-description: "${data.description}"
-tags:
-${tagsContent}
----
-
-## \u7F51\u7AD9\u622A\u56FE
-
-${screenshotLink}
-
-## \u7F51\u7AD9\u7B14\u8BB0
-
-`;
+  setCreatedNotes(notes) {
+    this.createdNotes = notes;
+    this.updateButtonStates();
+  }
+  /**
+   * 更新按钮状态
+   * @returns {void}
+   */
+  updateButtonStates() {
+    if (this.cancelButton) {
+      this.cancelButton.disabled = true;
+      this.cancelButton.textContent = "\u5DF2\u5B8C\u6210";
+    }
+    if (this.openAllButton) {
+      this.openAllButton.style.display = this.createdNotes.length > 0 ? "inline-block" : "none";
+    }
+    if (this.closeButton) {
+      this.closeButton.style.display = "inline-block";
+    }
+  }
+  /**
+   * 打开所有笔记
+   * @returns {Promise<void>}
+   */
+  async openAllNotes() {
+    for (const notePath of this.createdNotes) {
+      try {
+        const file = this.app.vault.getFileByPath(notePath);
+        if (file) {
+          await this.app.workspace.getLeaf().openFile(file);
+        }
+      } catch (error) {
+        console.error(`\u6253\u5F00\u7B14\u8BB0\u5931\u8D25: ${notePath}`, error);
+      }
+    }
+    this.close();
+  }
+  /**
+   * 处理取消按钮点击事件
+   * @returns {void}
+   */
+  handleCancel() {
+    if (this.isCancelling) {
+      return;
+    }
+    this.isCancelling = true;
+    if (this.cancelButton) {
+      this.cancelButton.textContent = "\u6B63\u5728\u53D6\u6D88...";
+      this.cancelButton.disabled = true;
+    }
+    this.workflow.requestCancellation();
+    new import_obsidian5.Notice("\u6B63\u5728\u53D6\u6D88\u5DE5\u4F5C\u6D41\uFF0C\u8BF7\u7A0D\u5019...");
+    setTimeout(() => {
+      this.close();
+    }, 1e3);
   }
 };
 
@@ -2208,9 +1514,10 @@ var BookmarkCreatorPlugin = class extends import_obsidian6.Plugin {
       id: "create-bookmark",
       name: "\u521B\u5EFA\u4E66\u7B7E\u7B14\u8BB0",
       callback: () => {
-        new BookmarkModal(this.app, this).open();
+        new BookmarkModal(this.app, this).inputMode().open();
       }
     });
+    this.registerURI();
     this.addSettingTab(new BookmarkCreatorSettingTab(this.app, this));
     console.log("\u4E66\u7B7E\u521B\u5EFA\u5668\u63D2\u4EF6\u5DF2\u52A0\u8F7D");
   }
@@ -2241,5 +1548,24 @@ var BookmarkCreatorPlugin = class extends import_obsidian6.Plugin {
    */
   async saveSettings() {
     await this.saveData(this.settings);
+  }
+  /**
+   * 注册URI处理
+   * 允许通过URI创建书签笔记
+   * 
+   * @returns {void}
+   */
+  registerURI() {
+    this.registerObsidianProtocolHandler("bookmark", async (param) => {
+      if (param && param.add) {
+        try {
+          new URL(param.add);
+          waitlist.add(param.add);
+          new BookmarkWorkflow(this.app, this.settings).startURLWorkflow();
+        } catch (error) {
+          new import_obsidian6.Notice("\u521B\u5EFA\u4E66\u7B7E\u5931\u8D25\uFF0CURL\u683C\u5F0F\u9519\u8BEF");
+        }
+      }
+    });
   }
 };
